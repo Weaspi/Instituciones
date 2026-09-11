@@ -1,30 +1,54 @@
 import { useState, ChangeEvent, FormEvent } from 'react'
 
 type InstitucionForm = {
-  nombreOficial: string
-  siglas: string
+  nombreInstitucion: string
   tipoInstitucion: string
-  rfc: string
-  entidadFederativa: string
-  sitioWeb: string
-  nombreResponsable: string
-  correoContacto: string
-  telefonoContacto: string
-  descripcionCapacidades: string
+  tipoInstitucionNivelUno: string
+  tipoInstitucionNivelDos: string
+  tipoInstitucionNivelTres: string
+  pais: string
+  entidad: string
+  id: string
+  municipio: string
+  localidad: string
+  razonSocial: string
+  privada: string
+  dondeSeCargo: string
+  clasificacionEntidad: string
+  poder: string
+  codigoIdentificacion: string
+  fecha1: string
+  fecha2: string
+  activo: string
+  nombre: string
+  correo: string
+  observaciones: string
 }
 
 function App() {
   const [form, setForm] = useState<InstitucionForm>({
-    nombreOficial: '',
-    siglas: '',
+    nombreInstitucion: '',
     tipoInstitucion: '',
-    rfc: '',
-    entidadFederativa: '',
-    sitioWeb: '',
-    nombreResponsable: '',
-    correoContacto: '',
-    telefonoContacto: '',
-    descripcionCapacidades: ''
+    tipoInstitucionNivelUno: '',
+    tipoInstitucionNivelDos: '',
+    tipoInstitucionNivelTres: '',
+    pais: '',
+    entidad: '',
+    id: '',
+    municipio: '',
+    localidad: '',
+    razonSocial: '',
+    privada: '',
+    dondeSeCargo: '',
+    clasificacionEntidad: '',
+    poder: '',
+    codigoIdentificacion: '',
+    fecha1: '',
+    fecha2: '',
+    activo: '',
+    nombre: '',
+    correo: '',
+    observaciones: ''
   })
   const [enviado, setEnviado] = useState(false)
 
@@ -41,14 +65,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <nav className="sticky top-0 w-full h-[72px] shrink-0 bg-[#13322e] text-white border-b border-[#bc955c]/30 z-[1020] shadow-md flex flex-col justify-center">
-        <div className="max-w-[1400px] h-full w-full mx-auto px-4 md:px-6 flex items-center justify-between">
+      <nav className="sticky top-0 w-full h-18 shrink-0 bg-[#13322e] text-white border-b border-[#bc955c]/30 z-1020 shadow-md flex flex-col justify-center">
+        <div className="max-w-350 h-full w-full mx-auto px-4 md:px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-white/5 rounded border border-[#bc955c]/20 hidden md:block">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#bc955c]"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M17 21v-8.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5V21"/></svg>
             </div>
             <h1 className="font-patria text-lg sm:text-xl md:text-[1.9rem] font-normal tracking-wide leading-none whitespace-nowrap">
-              Ciencia y Tecnología
+              Alta de Institución
             </h1>
           </div>
         </div>
@@ -77,33 +101,18 @@ function App() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="nombreOficial" className="text-sm font-medium text-slate-700">
-                      Nombre oficial de la institución <span className="text-[#9d2449]">*</span>
+                    <label htmlFor="nombreInstitucion" className="text-sm font-medium text-slate-700">
+                      Nombre de institución <span className="text-[#9d2449]">*</span>
                     </label>
                     <input
-                      id="nombreOficial"
-                      name="nombreOficial"
+                      id="nombreInstitucion"
+                      name="nombreInstitucion"
                       type="text"
-                      placeholder="Universidad, centro público o dependencia"
-                      value={form.nombreOficial}
+                      placeholder="Nombre completo de la institución"
+                      value={form.nombreInstitucion}
                       onChange={handleChange}
                       required
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="siglas" className="text-sm font-medium text-slate-700">
-                      Siglas
-                    </label>
-                    <input
-                      id="siglas"
-                      name="siglas"
-                      type="text"
-                      placeholder="UNAM, IPN, CIATEQ"
-                      value={form.siglas}
-                      onChange={handleChange}
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      className="input-style"
                     />
                   </div>
 
@@ -117,122 +126,330 @@ function App() {
                       value={form.tipoInstitucion}
                       onChange={handleChange}
                       required
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      className="input-style"
                     >
                       <option value="">Selecciona una opción</option>
-                      <option value="publica">Pública</option>
-                      <option value="privada">Privada</option>
-                      <option value="ong">ONG</option>
+                      <option value="id_1NACIONAL">id_1NACIONAL</option>
+                      <option value="id_2EXTRANJERA">id_2EXTRANJERA</option>
                     </select>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="rfc" className="text-sm font-medium text-slate-700">
-                      RFC o identificador institucional
+                    <label htmlFor="tipoInstitucionNivelUno" className="text-sm font-medium text-slate-700">
+                      Tipo institución nivel uno
                     </label>
                     <input
-                      id="rfc"
-                      name="rfc"
+                      id="tipoInstitucionNivelUno"
+                      name="tipoInstitucionNivelUno"
                       type="text"
-                      placeholder="Opcional para demo"
-                      value={form.rfc}
+                      placeholder="Ej. Educación superior"
+                      value={form.tipoInstitucionNivelUno}
                       onChange={handleChange}
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      className="input-style"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="entidadFederativa" className="text-sm font-medium text-slate-700">
-                      Entidad federativa <span className="text-[#9d2449]">*</span>
+                    <label htmlFor="tipoInstitucionNivelDos" className="text-sm font-medium text-slate-700">
+                      Tipo institución nivel dos
                     </label>
                     <input
-                      id="entidadFederativa"
-                      name="entidadFederativa"
+                      id="tipoInstitucionNivelDos"
+                      name="tipoInstitucionNivelDos"
                       type="text"
-                      placeholder="Ciudad de México"
-                      value={form.entidadFederativa}
+                      placeholder="Ej. Universidad"
+                      value={form.tipoInstitucionNivelDos}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="tipoInstitucionNivelTres" className="text-sm font-medium text-slate-700">
+                      Tipo institución nivel tres
+                    </label>
+                    <input
+                      id="tipoInstitucionNivelTres"
+                      name="tipoInstitucionNivelTres"
+                      type="text"
+                      placeholder="Ej. Pública, Privada, etc."
+                      value={form.tipoInstitucionNivelTres}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="pais" className="text-sm font-medium text-slate-700">
+                      País <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="pais"
+                      name="pais"
+                      type="text"
+                      placeholder="Ej. México"
+                      value={form.pais}
                       onChange={handleChange}
                       required
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      className="input-style"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="sitioWeb" className="text-sm font-medium text-slate-700">
-                      Sitio web institucional
+                    <label htmlFor="entidad" className="text-sm font-medium text-slate-700">
+                      Entidad
                     </label>
                     <input
-                      id="sitioWeb"
-                      name="sitioWeb"
-                      type="url"
-                      placeholder="https://..."
-                      value={form.sitioWeb}
-                      onChange={handleChange}
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="nombreResponsable" className="text-sm font-medium text-slate-700">
-                      Nombre de la persona responsable <span className="text-[#9d2449]">*</span>
-                    </label>
-                    <input
-                      id="nombreResponsable"
-                      name="nombreResponsable"
+                      id="entidad"
+                      name="entidad"
                       type="text"
-                      placeholder="Nombre completo"
-                      value={form.nombreResponsable}
+                      placeholder="Ej. Ciudad de México"
+                      value={form.entidad}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="id" className="text-sm font-medium text-slate-700">
+                      id
+                    </label>
+                    <input
+                      id="id"
+                      name="id"
+                      type="text"
+                      placeholder="Generar o dejar vacío"
+                      value={form.id}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="municipio" className="text-sm font-medium text-slate-700">
+                      Municipio <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="municipio"
+                      name="municipio"
+                      type="text"
+                      placeholder="Ej. Benito Juárez"
+                      value={form.municipio}
                       onChange={handleChange}
                       required
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      className="input-style"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="correoContacto" className="text-sm font-medium text-slate-700">
-                      Correo de contacto <span className="text-[#9d2449]">*</span>
+                    <label htmlFor="localidad" className="text-sm font-medium text-slate-700">
+                      Localidad <span className="text-slate-400">(Opcional)</span>
                     </label>
                     <input
-                      id="correoContacto"
-                      name="correoContacto"
+                      id="localidad"
+                      name="localidad"
+                      type="text"
+                      placeholder="Ej. Lomas de la Selva"
+                      value={form.localidad}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="razonSocial" className="text-sm font-medium text-slate-700">
+                      Razón social
+                    </label>
+                    <input
+                      id="razonSocial"
+                      name="razonSocial"
+                      type="text"
+                      placeholder="Ej. Universidad Nacional Autónoma de México"
+                      value={form.razonSocial}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="privada" className="text-sm font-medium text-slate-700">
+                      Privada <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <select
+                      id="privada"
+                      name="privada"
+                      value={form.privada}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    >
+                      <option value="">Selecciona una opción</option>
+                      <option value="1_si">1_si</option>
+                      <option value="0_no">0_no</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="dondeSeCargo" className="text-sm font-medium text-slate-700">
+                      Donde se cargó los datos
+                    </label>
+                    <input
+                      id="dondeSeCargo"
+                      name="dondeSeCargo"
+                      type="text"
+                      placeholder="Ej. Sistema de información, Oficina de control"
+                      value={form.dondeSeCargo}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="clasificacionEntidad" className="text-sm font-medium text-slate-700">
+                      Clasificación de entidad
+                    </label>
+                    <input
+                      id="clasificacionEntidad"
+                      name="clasificacionEntidad"
+                      type="text"
+                      placeholder="Ej. Pública, Privada, Descentralizada"
+                      value={form.clasificacionEntidad}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="poder" className="text-sm font-medium text-slate-700">
+                      Poder
+                    </label>
+                    <select
+                      id="poder"
+                      name="poder"
+                      value={form.poder}
+                      onChange={handleChange}
+                      className="input-style"
+                    >
+                      <option value="">Selecciona una opción</option>
+                      <option value="Ejecutivo">Ejecutivo</option>
+                      <option value="Legislativo">Legislativo</option>
+                      <option value="Judicial">Judicial</option>
+                      <option value="No aplica">No aplica</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="codigoIdentificacion" className="text-sm font-medium text-slate-700">
+                      Código de identificación
+                    </label>
+                    <input
+                      id="codigoIdentificacion"
+                      name="codigoIdentificacion"
+                      type="text"
+                      placeholder="Ej. RFC, clave única, etc."
+                      value={form.codigoIdentificacion}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="fecha1" className="text-sm font-medium text-slate-700">
+                      Fecha
+                    </label>
+                    <input
+                      id="fecha1"
+                      name="fecha1"
+                      type="text"
+                      placeholder="Formato numérico o fecha provista"
+                      value={form.fecha1}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="fecha2" className="text-sm font-medium text-slate-700">
+                      Fecha (segunda)
+                    </label>
+                    <input
+                      id="fecha2"
+                      name="fecha2"
+                      type="text"
+                      placeholder="Formato numérico o fecha provista"
+                      value={form.fecha2}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="activo" className="text-sm font-medium text-slate-700">
+                      Activo <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <select
+                      id="activo"
+                      name="activo"
+                      value={form.activo}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    >
+                      <option value="">Selecciona una opción</option>
+                      <option value="true">true</option>
+                      <option value="false">false</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="nombre" className="text-sm font-medium text-slate-700">
+                      Nombre <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="nombre"
+                      name="nombre"
+                      type="text"
+                      placeholder="Nombre de la persona de contacto/responsable"
+                      value={form.nombre}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="correo" className="text-sm font-medium text-slate-700">
+                      Correo <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="correo"
+                      name="correo"
                       type="email"
                       placeholder="contacto@institucion.mx"
-                      value={form.correoContacto}
+                      value={form.correo}
                       onChange={handleChange}
                       required
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      className="input-style"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label htmlFor="telefonoContacto" className="text-sm font-medium text-slate-700">
-                      Teléfono de contacto
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label htmlFor="observaciones" className="text-sm font-medium text-slate-700">
+                      Observaciones
                     </label>
-                    <input
-                      id="telefonoContacto"
-                      name="telefonoContacto"
-                      type="tel"
-                      placeholder="55 0000 0000"
-                      value={form.telefonoContacto}
+                    <textarea
+                      id="observaciones"
+                      name="observaciones"
+                      placeholder="Cualquier dato extra que no encaje en los campos anteriores"
+                      value={form.observaciones}
                       onChange={handleChange}
-                      className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      rows={3}
+                      className="input-style"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="descripcionCapacidades" className="text-sm font-medium text-slate-700">
-                    Descripción breve de capacidades
-                  </label>
-                  <textarea
-                    id="descripcionCapacidades"
-                    name="descripcionCapacidades"
-                    value={form.descripcionCapacidades}
-                    onChange={handleChange}
-                    rows={3}
-                    className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  />
-                </div>
+               
 
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500">

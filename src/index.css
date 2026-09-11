@@ -469,3 +469,11 @@ body {
   white-space: nowrap;
   border: 0;
 }
+
+.input-style {
+  @apply flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
+}
+
+.input-style:focus-visible {
+  @apply outline-none ring-2 ring-[#9d2449];
+}
