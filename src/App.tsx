@@ -1,4 +1,12 @@
-import { useState, ChangeEvent, FormEvent } from 'react'
+﻿import {
+  useState,
+  ChangeEvent,
+  FormEvent,
+  useMemo,
+  useRef,
+  useEffect,
+} from 'react'
+import { PAISES } from './data/paises'
 
 type InstitucionForm = {
   nombreInstitucion: string
@@ -25,42 +33,150 @@ type InstitucionForm = {
   observaciones: string
 }
 
+const FORM_INICIAL: InstitucionForm = {
+  nombreInstitucion: '',
+  tipoInstitucion: '',
+  tipoInstitucionNivelUno: '',
+  tipoInstitucionNivelDos: '',
+  tipoInstitucionNivelTres: '',
+  pais: '',
+  entidad: '',
+  id: '',
+  municipio: '',
+  localidad: '',
+  razonSocial: '',
+  privada: '',
+  dondeSeCargo: '',
+  clasificacionEntidad: '',
+  poder: '',
+  codigoIdentificacion: '',
+  fecha1: '',
+  fecha2: '',
+  activo: '',
+  nombre: '',
+  correo: '',
+  observaciones: '',
+}
+
+const normalizar = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+
+function PaisAutocomplete({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
+  const [abierto, setAbierto] = useState(false)
+  const [resaltado, setResaltado] = useState(0)
+  const contenedorRef = useRef<HTMLDivElement>(null)
+
+  const filtrados = useMemo(() => {
+    const q = normalizar(value)
+    if (!q) return PAISES
+    return PAISES.filter((p) => normalizar(p).includes(q))
+  }, [value])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        contenedorRef.current &&
+        !contenedorRef.current.contains(e.target as Node)
+      ) {
+        setAbierto(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!abierto && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      setAbierto(true)
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setResaltado((r) => Math.min(r + 1, filtrados.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setResaltado((r) => Math.max(r - 1, 0))
+    } else if (e.key === 'Enter') {
+      if (abierto && filtrados[resaltado]) {
+        e.preventDefault()
+        onChange(filtrados[resaltado])
+        setAbierto(false)
+      }
+    } else if (e.key === 'Escape') {
+      setAbierto(false)
+    }
+  }
+
+  return (
+    <div ref={contenedorRef} className="relative">
+      <input
+        id="pais"
+        name="pais"
+        type="text"
+        placeholder="Escribe para buscar tu país..."
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value)
+          setAbierto(true)
+          setResaltado(0)
+        }}
+        onFocus={() => setAbierto(true)}
+        onKeyDown={handleKeyDown}
+        required
+        autoComplete="off"
+        className="input-style w-full"
+      />
+
+      {abierto && filtrados.length > 0 && (
+        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+          {filtrados.slice(0, 50).map((p, i) => (
+            <li
+              key={p}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                onChange(p)
+                setAbierto(false)
+              }}
+              onMouseEnter={() => setResaltado(i)}
+              className={`cursor-pointer px-3 py-2 text-sm ${
+                i === resaltado ? 'bg-[#13322e] text-white' : 'text-slate-700'
+              }`}
+            >
+              {p}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function App() {
-  const [form, setForm] = useState<InstitucionForm>({
-    nombreInstitucion: '',
-    tipoInstitucion: '',
-    tipoInstitucionNivelUno: '',
-    tipoInstitucionNivelDos: '',
-    tipoInstitucionNivelTres: '',
-    pais: '',
-    entidad: '',
-    id: '',
-    municipio: '',
-    localidad: '',
-    razonSocial: '',
-    privada: '',
-    dondeSeCargo: '',
-    clasificacionEntidad: '',
-    poder: '',
-    codigoIdentificacion: '',
-    fecha1: '',
-    fecha2: '',
-    activo: '',
-    nombre: '',
-    correo: '',
-    observaciones: ''
-  })
+  const [form, setForm] = useState<InstitucionForm>(FORM_INICIAL)
   const [enviado, setEnviado] = useState(false)
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setEnviado(true)
     console.log('Institución registrada:', form)
+    setEnviado(true)
+    setForm(FORM_INICIAL)
   }
 
   return (
@@ -98,7 +214,7 @@ function App() {
                 Datos mínimos para identificar y validar a la institución responsable dentro del catálogo.
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label htmlFor="nombreInstitucion" className="text-sm font-medium text-slate-700">
@@ -129,8 +245,8 @@ function App() {
                       className="input-style"
                     >
                       <option value="">Selecciona una opción</option>
-                      <option value="id_1NACIONAL">id_1NACIONAL</option>
-                      <option value="id_2EXTRANJERA">id_2EXTRANJERA</option>
+                      <option value="NACIONAL">NACIONAL</option>
+                      <option value="EXTRANJERA">EXTRANJERA</option>
                     </select>
                   </div>
 
@@ -183,15 +299,9 @@ function App() {
                     <label htmlFor="pais" className="text-sm font-medium text-slate-700">
                       País <span className="text-[#9d2449]">*</span>
                     </label>
-                    <input
-                      id="pais"
-                      name="pais"
-                      type="text"
-                      placeholder="Ej. México"
+                    <PaisAutocomplete
                       value={form.pais}
-                      onChange={handleChange}
-                      required
-                      className="input-style"
+                      onChange={(v) => setForm((prev) => ({ ...prev, pais: v }))}
                     />
                   </div>
 
@@ -284,8 +394,8 @@ function App() {
                       className="input-style"
                     >
                       <option value="">Selecciona una opción</option>
-                      <option value="1_si">1_si</option>
-                      <option value="0_no">0_no</option>
+                      <option value="SI">SI</option>
+                      <option value="NO">NO</option>
                     </select>
                   </div>
 
@@ -448,8 +558,6 @@ function App() {
                     />
                   </div>
                 </div>
-
-               
 
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-xs text-slate-500">
