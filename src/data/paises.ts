@@ -1,4 +1,3 @@
-// src/data/paises.ts
 export const PAISES: string[] = [
   'Afganistán',
   'Albania',
