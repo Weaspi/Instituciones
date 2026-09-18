@@ -9,7 +9,6 @@
 import { PAISES } from './data/paises'
 import { ESTADOS_MEXICO } from './data/estados'
 
-// ---------- Tipos ----------
 type InstitucionForm = {
   nombreInstitucion: string
   tipoInstitucion: string
@@ -22,18 +21,15 @@ type InstitucionForm = {
   localidad: string
   razonSocial: string
   privada: string
-  dondeSeCargo: string
   poder: string
-  codigoIdentificacion: string
-  fecha1: string
-  fecha2: string
   nombre: string
   correo: string
   observaciones: string
 }
 
 type InstitucionGuardada = InstitucionForm & {
-  _id: string // id interno para key
+  _id: string
+  fechaRegistro: string 
 }
 
 const FORM_INICIAL: InstitucionForm = {
@@ -48,17 +44,12 @@ const FORM_INICIAL: InstitucionForm = {
   localidad: '',
   razonSocial: '',
   privada: '',
-  dondeSeCargo: '',
   poder: '',
-  codigoIdentificacion: '',
-  fecha1: '',
-  fecha2: '',
   nombre: '',
   correo: '',
   observaciones: '',
 }
 
-// ---------- Utilidades ----------
 const normalizar = (s: string) =>
   s
     .toLowerCase()
@@ -72,7 +63,183 @@ const normalizarMayus = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
 
-// ---------- Autocomplete: Entidad ----------
+
+type Idioma = 'es' | 'en'
+
+const TRADUCCIONES = {
+  es: {
+    appTitulo: 'Instituciones',
+    navAlta: 'Alta',
+    navRegistradas: 'Registradas',
+    btnIdioma: 'ES',
+
+    registroTitulo: 'Registro Institucional',
+    altaTitulo: 'Alta de Institución',
+    altaSubtitulo:
+      'Datos mínimos para identificar y validar a la institución responsable dentro del catálogo.',
+
+  
+    nombreInstitucion: 'Nombre de institución',
+    tipoInstitucion: 'Tipo de institución',
+    seleccionaOpcion: 'Selecciona una opción',
+    opcionNacional: 'NACIONAL',
+    opcionExtranjera: 'EXTRANJERA',
+    pais: 'País',
+    entidad: 'Entidad',
+    municipio: 'Municipio',
+    localidad: 'Localidad',
+    institucionPadre: 'Institución Padre',
+    privada: 'Privada',
+    opcionSi: 'SI',
+    opcionNo: 'NO',
+    poder: 'Poder',
+    nombre: 'Nombre',
+    correo: 'Correo',
+    observaciones: 'Observaciones',
+    opcional: '(Opcional)',
+
+    nivelesTitulo: 'Tipo de institución por nivel',
+    nivelesSubtitulo:
+      'Selecciona 1 de las 3 opciones   ',
+    nivelUno: 'Tipo institución nivel uno',
+    nivelDos: 'Tipo institución nivel dos',
+    nivelTres: 'Tipo institución nivel tres',
+    tablaTipo: 'Tipo',
+    tablaSeleccion: 'Selección',
+    tablaPoder: 'Poder',
+    especificaTipo: 'Especifica el tipo',
+    especificaPoder: 'Especifica el poder',
+    phOtroTipo: 'Escribe el tipo',
+    phOtroPoder: 'Ej. Organismo autónomo',
+    guardadoEn: 'Este valor se guardará en',
+
+    cancelar: 'Cancelar',
+    guardar: 'Guardar institución',
+    obligatorios: 'Los campos marcados con',
+    obligatoriosSufijo: 'son obligatorios.',
+    registradaOk: 'Institución registrada correctamente.',
+    verRegistradas: 'Ver registradas',
+
+
+    catalogo: 'Catálogo',
+    listaTitulo: 'Instituciones registradas',
+    buscar: 'Buscar por nombre...',
+    sinRegistros: 'Aún no hay instituciones registradas.',
+    sinCoincidencias: 'No se encontraron coincidencias.',
+    colNombre: 'Nombre',
+    colPais: 'País',
+    colEntidad: 'Entidad',
+    colTipo: 'Tipo',
+    colResponsable: 'Responsable',
+    colCorreo: 'Correo',
+    colFechaRegistro: 'Registrado el',
+    guion: '—',
+
+    footer: 'Sistema de Registro Institucional',
+
+    phNombreInstitucion: 'Nombre completo de la institución',
+    phEntidad: 'Ej. Ciudad de México',
+    phMunicipio: 'Ej. Benito Juárez',
+    phLocalidad: 'Ej. Lomas de la Selva',
+    phInstitucionPadre: 'Ej. Universidad Nacional Autónoma de México',
+    phDondeSeCargo: 'Ej. Sistema de información, Oficina de control',
+    phCodigo: 'Ej. RFC, clave única, etc.',
+    phNombre: 'Nombre de la persona de contacto/responsable',
+    phCorreo: 'contacto@institucion.mx',
+    phObservaciones: 'Notas u observaciones adicionales',
+
+    opcionesNivelUno: ['Pública', 'Privada', 'Extranjera', 'Otro'],
+    opcionesNivelDos: ['Estatal', 'Federal', 'Empresa', 'Otro'],
+    opcionesPoder: ['Estatal', 'Federal', 'Municipal', 'Otro'],
+  },
+  en: {
+    appTitulo: 'Institutions',
+    navAlta: 'Register',
+    navRegistradas: 'Registered',
+    btnIdioma: 'EN',
+
+    registroTitulo: 'Institutional Registry',
+    altaTitulo: 'Register Institution',
+    altaSubtitulo:
+      'Minimum data to identify and validate the responsible institution in the catalog.',
+
+    nombreInstitucion: 'Institution name',
+    tipoInstitucion: 'Institution type',
+    seleccionaOpcion: 'Select an option',
+    opcionNacional: 'NATIONAL',
+    opcionExtranjera: 'FOREIGN',
+    pais: 'Country',
+    entidad: 'State',
+    municipio: 'Municipality',
+    localidad: 'Locality',
+    institucionPadre: 'Parent Institution',
+    privada: 'Private',
+    opcionSi: 'YES',
+    opcionNo: 'NO',
+    poder: 'Branch',
+    nombre: 'Name',
+    correo: 'Email',
+    observaciones: 'Notes',
+    opcional: '(Optional)',
+
+    nivelesTitulo: 'Institution type by level',
+    nivelesSubtitulo:
+      'Select 1 of the 3 options.',
+    nivelUno: 'Institution type level one',
+    nivelDos: 'Institution type level two',
+    nivelTres: 'Institution type level three',
+    tablaTipo: 'Type',
+    tablaSeleccion: 'Selection',
+    tablaPoder: 'Branch',
+    especificaTipo: 'Specify the type',
+    especificaPoder: 'Specify the branch',
+    phOtroTipo: 'Write the type',
+    phOtroPoder: 'E.g. Autonomous body',
+    guardadoEn: 'This value will be saved in',
+
+    cancelar: 'Cancel',
+    guardar: 'Save institution',
+    obligatorios: 'Fields marked with',
+    obligatoriosSufijo: 'are required.',
+    registradaOk: 'Institution successfully registered.',
+    verRegistradas: 'View registered',
+
+    catalogo: 'Catalog',
+    listaTitulo: 'Registered institutions',
+    buscar: 'Search by name...',
+    sinRegistros: 'No institutions registered yet.',
+    sinCoincidencias: 'No matches found.',
+    colNombre: 'Name',
+    colPais: 'Country',
+    colEntidad: 'State',
+    colTipo: 'Type',
+    colResponsable: 'Contact',
+    colCorreo: 'Email',
+    colFechaRegistro: 'Registered on',
+    guion: '—',
+
+    footer: 'Institutional Registry System',
+
+    phNombreInstitucion: 'Full institution name',
+    phEntidad: 'E.g. Mexico City',
+    phMunicipio: 'E.g. Benito Juárez',
+    phLocalidad: 'E.g. Lomas de la Selva',
+    phInstitucionPadre: 'E.g. National University',
+    phDondeSeCargo: 'E.g. Information system, Control office',
+    phCodigo: 'E.g. RFC, unique key, etc.',
+    phNombre: 'Contact/responsible person name',
+    phCorreo: 'contact@institution.mx',
+    phObservaciones: 'Additional notes or observations',
+
+    opcionesNivelUno: ['Public', 'Private', 'Foreign', 'Other'],
+    opcionesNivelDos: ['State', 'Federal', 'Company', 'Other'],
+    opcionesPoder: ['State', 'Federal', 'Municipal', 'Other'],
+  },
+} as const
+
+type Traduccion = typeof TRADUCCIONES['es'] | typeof TRADUCCIONES['en']
+
+
 function EntidadAutocomplete({
   value,
   onChange,
@@ -167,7 +334,7 @@ function EntidadAutocomplete({
   )
 }
 
-// ---------- Autocomplete: País ----------
+
 function PaisAutocomplete({
   value,
   onChange,
@@ -263,57 +430,43 @@ function PaisAutocomplete({
   )
 }
 
-const OPCIONES_NIVEL = ['Pública', 'Privada', 'Extranjera', 'Otro'] as const
-type OpcionNivel = (typeof OPCIONES_NIVEL)[number]
 
-const OPCIONES_NIVEL_UNO = [
-  'Pública',
-  'Privada',
-  'Extranjera',
-  'Otro',
-] as const
-
-const OPCIONES_NIVEL_DOS = [
-  'Estatal',
-  'Federal ',
-  'Empresa ',
-  'Otro',
-] as const
-
-const OPCIONES_PODER = ['Estatal', 'Federal', 'Municipal', 'Otro'] as const
-function NivelConOpciones<T extends string>({
+function NivelConOpciones({
   form,
   setForm,
   name,
   opciones,
+  t,
 }: {
   form: InstitucionForm
   setForm: React.Dispatch<React.SetStateAction<InstitucionForm>>
   name: 'tipoInstitucionNivelUno' | 'tipoInstitucionNivelDos'
-  opciones: readonly T[]
+  opciones: readonly string[]
+  t: Traduccion
 }) {
   const valorActual = form[name]
+  const otra = t === TRADUCCIONES.en ? 'Other' : 'Otro'
 
-  const opcionInicial: T | '' = opciones.includes(valorActual as T)
-    ? (valorActual as T)
+  const opcionInicial = opciones.includes(valorActual)
+    ? valorActual
     : valorActual
-      ? ('Otro' as T)
+      ? otra
       : ''
 
-  const [opcion, setOpcion] = useState<T | ''>(opcionInicial)
+  const [opcion, setOpcion] = useState<string>(opcionInicial)
   const [otroTexto, setOtroTexto] = useState(
-    opcionInicial === 'Otro' ? valorActual : ''
+    opcionInicial === otra ? valorActual : ''
   )
 
-  const aplicar = (op: T, textoOtro: string) => {
-    const valorFinal = op === 'Otro' ? textoOtro : op
+  const aplicar = (op: string, textoOtro: string) => {
+    const valorFinal = op === otra ? textoOtro : op
     setForm((prev) => ({ ...prev, [name]: valorFinal }))
   }
 
-  const handleOpcionClick = (op: T) => {
+  const handleOpcionClick = (op: string) => {
     setOpcion(op)
-    if (op === 'Otro') {
-      aplicar('Otro' as T, otroTexto)
+    if (op === otra) {
+      aplicar(otra, otroTexto)
     } else {
       setOtroTexto('')
       aplicar(op, '')
@@ -322,7 +475,7 @@ function NivelConOpciones<T extends string>({
 
   const handleOtroChange = (texto: string) => {
     setOtroTexto(texto)
-    aplicar('Otro' as T, texto)
+    aplicar(otra, texto)
   }
 
   return (
@@ -331,9 +484,11 @@ function NivelConOpciones<T extends string>({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left font-medium px-3 py-2">Tipo</th>
+              <th className="text-left font-medium px-3 py-2">
+                {t.tablaTipo}
+              </th>
               <th className="text-left font-medium px-3 py-2 w-24">
-                Selección
+                {t.tablaSeleccion}
               </th>
             </tr>
           </thead>
@@ -381,66 +536,65 @@ function NivelConOpciones<T extends string>({
         </table>
       </div>
 
-      {opcion === 'Otro' && (
+      {opcion === otra && (
         <div className="space-y-1.5">
           <label
             htmlFor={`otro-${name}`}
             className="text-xs font-medium text-slate-600"
           >
-            Especifica el tipo
+            {t.especificaTipo}
           </label>
           <input
             id={`otro-${name}`}
             type="text"
-            placeholder="Escribe el tipo"
+            placeholder={t.phOtroTipo}
             value={otroTexto}
             onChange={(e) => handleOtroChange(e.target.value)}
             autoFocus
             className="input-style w-full"
           />
           <p className="text-xs text-slate-400">
-            Este valor se guardará en <code>{name}</code>.
+            {t.guardadoEn} <code>{name}</code>.
           </p>
         </div>
       )}
     </div>
   )
 }
+
+// Poder 
 function PoderConOpciones({
   form,
   setForm,
+  t,
 }: {
   form: InstitucionForm
   setForm: React.Dispatch<React.SetStateAction<InstitucionForm>>
+  t: Traduccion
 }) {
   const valorActual = form.poder
+  const otra = t === TRADUCCIONES.en ? 'Other' : 'Otro'
 
-  const opcionInicial: (typeof OPCIONES_PODER)[number] | '' =
-    OPCIONES_PODER.includes(valorActual as (typeof OPCIONES_PODER)[number])
-      ? (valorActual as (typeof OPCIONES_PODER)[number])
-      : valorActual
-        ? 'Otro'
-        : ''
+  const opcionInicial = t.opcionesPoder.includes(valorActual)
+    ? valorActual
+    : valorActual
+      ? otra
+      : ''
 
-  const [opcion, setOpcion] = useState<(typeof OPCIONES_PODER)[number] | ''>(
-    opcionInicial
-  )
+  const [opcion, setOpcion] = useState<string>(opcionInicial)
   const [otroTexto, setOtroTexto] = useState(
-    opcionInicial === 'Otro' ? valorActual : ''
+    opcionInicial === otra ? valorActual : ''
   )
 
-  const aplicar = (
-    op: (typeof OPCIONES_PODER)[number],
-    textoOtro: string
-  ) => {
-    const valorFinal = op === 'Otro' ? textoOtro : op
+  const aplicar = (op: string, textoOtro: string) => {
+    const valorFinal = op === otra ? textoOtro : op
     setForm((prev) => ({ ...prev, poder: valorFinal }))
   }
 
-  const handleOpcionClick = (op: (typeof OPCIONES_PODER)[number]) => {
+  const handleOpcionClick = (op: string) => {
     setOpcion(op)
-    if (op === 'Otro') {
-      aplicar('Otro', otroTexto)
+    if (op === otra) {
+      aplicar(otra, otroTexto)
     } else {
       setOtroTexto('')
       aplicar(op, '')
@@ -449,7 +603,7 @@ function PoderConOpciones({
 
   const handleOtroChange = (texto: string) => {
     setOtroTexto(texto)
-    aplicar('Otro', texto)
+    aplicar(otra, texto)
   }
 
   return (
@@ -458,14 +612,16 @@ function PoderConOpciones({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
-              <th className="text-left font-medium px-3 py-2">Poder</th>
+              <th className="text-left font-medium px-3 py-2">
+                {t.tablaPoder}
+              </th>
               <th className="text-left font-medium px-3 py-2 w-24">
-                Selección
+                {t.tablaSeleccion}
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {OPCIONES_PODER.map((op) => {
+            {t.opcionesPoder.map((op) => {
               const activa = opcion === op
               return (
                 <tr
@@ -508,52 +664,53 @@ function PoderConOpciones({
         </table>
       </div>
 
-      {opcion === 'Otro' && (
+      {opcion === otra && (
         <div className="space-y-1.5">
           <label
             htmlFor="otro-poder"
             className="text-xs font-medium text-slate-600"
           >
-            Especifica el poder
+            {t.especificaPoder}
           </label>
           <input
             id="otro-poder"
             type="text"
-            placeholder="Ej. Organismo autónomo"
+            placeholder={t.phOtroPoder}
             value={otroTexto}
             onChange={(e) => handleOtroChange(e.target.value)}
             autoFocus
             className="input-style w-full"
           />
           <p className="text-xs text-slate-400">
-            Este valor se guardará en <code>poder</code>.
+            {t.guardadoEn} <code>poder</code>.
           </p>
         </div>
       )}
     </div>
   )
 }
-// ---------- Acordeón de niveles ----------
+
+// Acordeón 
 type NivelKey =
   | 'tipoInstitucionNivelUno'
   | 'tipoInstitucionNivelDos'
   | 'tipoInstitucionNivelTres'
 
-
 function NivelesAcordeon({
   form,
   setForm,
+  t,
 }: {
   form: InstitucionForm
   setForm: React.Dispatch<React.SetStateAction<InstitucionForm>>
+  t: Traduccion
 }) {
   const [abierto, setAbierto] = useState<NivelKey | null>(null)
-  
+
   const toggle = (key: NivelKey) => {
     setAbierto((prev) => (prev === key ? null : key))
   }
 
-  // Helper para renderizar el header de cada nivel
   const HeaderNivel = ({
     nivelKey,
     label,
@@ -610,57 +767,55 @@ function NivelesAcordeon({
     <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50/50">
       <div className="px-4 py-3 border-b border-slate-200">
         <h3 className="text-sm font-semibold text-[#13322e]">
-          Tipo de institución por nivel
+          {t.nivelesTitulo}
         </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Nivel 1 y 2 usan la misma tabla. Nivel 3 es texto libre.
-        </p>
+        <p className="text-xs text-slate-500 mt-0.5">{t.nivelesSubtitulo}</p>
       </div>
 
       <ul className="divide-y divide-slate-200">
-      {/* NIVEL 1 */}
-      <li>
-        <HeaderNivel
-          nivelKey="tipoInstitucionNivelUno"
-          label="Tipo institución nivel uno"
-        />
-        {abierto === 'tipoInstitucionNivelUno' && (
-          <NivelConOpciones
-            form={form}
-            setForm={setForm}
-            name="tipoInstitucionNivelUno"
-            opciones={OPCIONES_NIVEL_UNO}
+        <li>
+          <HeaderNivel
+            nivelKey="tipoInstitucionNivelUno"
+            label={t.nivelUno}
           />
-        )}
-      </li>
+          {abierto === 'tipoInstitucionNivelUno' && (
+            <NivelConOpciones
+              form={form}
+              setForm={setForm}
+              name="tipoInstitucionNivelUno"
+              opciones={t.opcionesNivelUno}
+              t={t}
+            />
+          )}
+        </li>
 
-      {/* NIVEL 2 */}
-      <li>
-        <HeaderNivel
-          nivelKey="tipoInstitucionNivelDos"
-          label="Tipo institución nivel dos"
-        />
-        {abierto === 'tipoInstitucionNivelDos' && (
-          <NivelConOpciones
-            form={form}
-            setForm={setForm}
-            name="tipoInstitucionNivelDos"
-            opciones={OPCIONES_NIVEL_DOS}
+        <li>
+          <HeaderNivel
+            nivelKey="tipoInstitucionNivelDos"
+            label={t.nivelDos}
           />
-        )}
-      </li>
-        {/* NIVEL 3 (texto libre) */}
+          {abierto === 'tipoInstitucionNivelDos' && (
+            <NivelConOpciones
+              form={form}
+              setForm={setForm}
+              name="tipoInstitucionNivelDos"
+              opciones={t.opcionesNivelDos}
+              t={t}
+            />
+          )}
+        </li>
+
         <li>
           <HeaderNivel
             nivelKey="tipoInstitucionNivelTres"
-            label="Tipo institución nivel tres"
+            label={t.nivelTres}
           />
           {abierto === 'tipoInstitucionNivelTres' && (
             <div className="px-4 pb-4">
               <input
                 type="text"
                 name="tipoInstitucionNivelTres"
-                placeholder="Ej. Pública, Privada, etc."
+                placeholder={t.phOtroTipo}
                 value={form.tipoInstitucionNivelTres}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -679,11 +834,15 @@ function NivelesAcordeon({
   )
 }
 
-// ---------- Vista: Lista de instituciones ----------
+// Lista
 function ListaInstituciones({
   instituciones,
+  t,
+  idioma,
 }: {
   instituciones: InstitucionGuardada[]
+  t: Traduccion
+  idioma: 'es' | 'en'
 }) {
   const [busqueda, setBusqueda] = useState('')
 
@@ -723,10 +882,10 @@ function ListaInstituciones({
               </span>
               <div>
                 <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
-                  Catálogo
+                  {t.catalogo}
                 </span>
                 <h2 className="text-2xl font-semibold text-[#13322e] leading-tight">
-                  Instituciones registradas
+                  {t.listaTitulo}
                 </h2>
               </div>
             </div>
@@ -734,7 +893,7 @@ function ListaInstituciones({
             <div className="w-full md:w-72">
               <input
                 type="text"
-                placeholder="Buscar por nombre..."
+                placeholder={t.buscar}
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="input-style w-full"
@@ -745,8 +904,8 @@ function ListaInstituciones({
           {filtradas.length === 0 ? (
             <div className="text-center py-12 text-slate-500 text-sm">
               {instituciones.length === 0
-                ? 'Aún no hay instituciones registradas.'
-                : 'No se encontraron coincidencias.'}
+                ? t.sinRegistros
+                : t.sinCoincidencias}
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border border-slate-200">
@@ -754,20 +913,25 @@ function ListaInstituciones({
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
                     <th className="text-left font-medium px-3 py-2">
-                      Nombre
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">País</th>
-                    <th className="text-left font-medium px-3 py-2">
-                      Entidad
+                      {t.colNombre}
                     </th>
                     <th className="text-left font-medium px-3 py-2">
-                      Tipo
+                      {t.colPais}
                     </th>
                     <th className="text-left font-medium px-3 py-2">
-                      Responsable
+                      {t.colEntidad}
                     </th>
                     <th className="text-left font-medium px-3 py-2">
-                      Correo
+                      {t.colTipo}
+                    </th>
+                    <th className="text-left font-medium px-3 py-2">
+                      {t.colResponsable}
+                    </th>
+                    <th className="text-left font-medium px-3 py-2">
+                      {t.colCorreo}
+                    </th>
+                    <th className="text-left font-medium px-3 py-2">
+                      {t.colFechaRegistro}
                     </th>
                   </tr>
                 </thead>
@@ -779,15 +943,22 @@ function ListaInstituciones({
                       </td>
                       <td className="px-3 py-2 text-slate-600">{i.pais}</td>
                       <td className="px-3 py-2 text-slate-600">
-                        {i.entidad || '—'}
+                        {i.entidad || t.guion}
                       </td>
                       <td className="px-3 py-2 text-slate-600">
-                        {i.tipoInstitucionNivelUno || '—'}
+                        {i.tipoInstitucionNivelUno || t.guion}
                       </td>
                       <td className="px-3 py-2 text-slate-600">{i.nombre}</td>
-                      <td className="px-3 py-2 text-slate-600">
-                        {i.correo}
-                      </td>
+                      <td className="px-3 py-2 text-slate-600">{i.correo}</td>
+                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                      {new Date(i.fechaRegistro).toLocaleString(idioma === 'es' ? 'es-MX' : 'en-US', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
                     </tr>
                   ))}
                 </tbody>
@@ -800,7 +971,7 @@ function ListaInstituciones({
   )
 }
 
-// ---------- App ----------
+//  App 
 type Vista = 'alta' | 'lista'
 
 function App() {
@@ -809,14 +980,25 @@ function App() {
   const [instituciones, setInstituciones] = useState<InstitucionGuardada[]>([])
   const [enviado, setEnviado] = useState(false)
   const [poderAbierto, setPoderAbierto] = useState(false)
-
+  const [idioma, setIdioma] = useState<Idioma>('es')
+  const t = TRADUCCIONES[idioma]
+useEffect(() => {
+  if (form.tipoInstitucion === 'EXTRANJERA') {
+    setForm((prev) => ({
+      ...prev,
+      entidad: '',
+      municipio: '',
+      localidad: '',
+    }))
+  }
+}, [form.tipoInstitucion])
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
-
+const bloqueado = form.tipoInstitucion === 'EXTRANJERA'
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -830,10 +1012,11 @@ function App() {
       })
     ) as InstitucionForm
 
-    const nueva: InstitucionGuardada = {
-      ...formFinal,
-      _id: crypto.randomUUID(),
-    }
+const nueva: InstitucionGuardada = {
+  ...formFinal,
+  _id: crypto.randomUUID(),
+  fechaRegistro: new Date().toISOString(),
+}
 
     setInstituciones((prev) => [nueva, ...prev])
     console.log('Institución registrada:', formFinal)
@@ -865,12 +1048,20 @@ function App() {
               </svg>
             </div>
             <h1 className="font-patria text-lg sm:text-xl md:text-[1.9rem] font-normal tracking-wide leading-none whitespace-nowrap">
-              Instituciones
+              {t.appTitulo}
             </h1>
           </div>
 
-          {/* Menú de vistas */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
+              }
+              className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-white/80 hover:bg-white/10 border border-white/20"
+            >
+              {t.btnIdioma}
+            </button>
             <button
               type="button"
               onClick={() => setVista('alta')}
@@ -880,7 +1071,7 @@ function App() {
                   : 'text-white/80 hover:bg-white/10'
               }`}
             >
-              Alta
+              {t.navAlta}
             </button>
             <button
               type="button"
@@ -891,7 +1082,7 @@ function App() {
                   : 'text-white/80 hover:bg-white/10'
               }`}
             >
-              Registradas ({instituciones.length})
+              {t.navRegistradas} ({instituciones.length})
             </button>
           </div>
         </div>
@@ -899,7 +1090,7 @@ function App() {
 
       <main className="flex-1 w-full relative z-10 flex flex-col">
         {vista === 'lista' ? (
-          <ListaInstituciones instituciones={instituciones} />
+          <ListaInstituciones instituciones={instituciones} t={t} idioma={idioma} />
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -925,17 +1116,17 @@ function App() {
                     </span>
                     <div>
                       <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
-                        Registro Institucional
+                        {t.registroTitulo}
                       </span>
                       <h2 className="text-2xl font-semibold text-[#13322e] leading-tight">
-                        Alta de Institución
+                        {t.altaTitulo}
                       </h2>
                     </div>
                   </div>
                 </div>
 
                 <p className="text-sm text-slate-500 mb-6">
-                  Datos mínimos para identificar y validar a la institución responsable dentro del catálogo.
+                  {t.altaSubtitulo}
                 </p>
 
                 <form
@@ -949,14 +1140,14 @@ function App() {
                         htmlFor="nombreInstitucion"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Nombre de institución{' '}
+                        {t.nombreInstitucion}{' '}
                         <span className="text-[#9d2449]">*</span>
                       </label>
                       <input
                         id="nombreInstitucion"
                         name="nombreInstitucion"
                         type="text"
-                        placeholder="Nombre completo de la institución"
+                        placeholder={t.phNombreInstitucion}
                         value={form.nombreInstitucion}
                         onChange={handleChange}
                         required
@@ -969,7 +1160,7 @@ function App() {
                         htmlFor="tipoInstitucion"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Tipo de institución{' '}
+                        {t.tipoInstitucion}{' '}
                         <span className="text-[#9d2449]">*</span>
                       </label>
                       <select
@@ -980,20 +1171,24 @@ function App() {
                         required
                         className="input-style"
                       >
-                        <option value="">Selecciona una opción</option>
-                        <option value="NACIONAL">NACIONAL</option>
-                        <option value="EXTRANJERA">EXTRANJERA</option>
+                        <option value="">{t.seleccionaOpcion}</option>
+                        <option value="NACIONAL">
+                          {t.opcionNacional}
+                        </option>
+                        <option value="EXTRANJERA">
+                          {t.opcionExtranjera}
+                        </option>
                       </select>
                     </div>
 
-                    <NivelesAcordeon form={form} setForm={setForm} />
+                    <NivelesAcordeon form={form} setForm={setForm} t={t} />
 
                     <div className="space-y-1.5">
                       <label
                         htmlFor="pais"
                         className="text-sm font-medium text-slate-700"
                       >
-                        País <span className="text-[#9d2449]">*</span>
+                        {t.pais} <span className="text-[#9d2449]">*</span>
                       </label>
                       <PaisAutocomplete
                         value={form.pais}
@@ -1008,9 +1203,19 @@ function App() {
                         htmlFor="entidad"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Entidad
+                        {t.entidad}
                       </label>
-                      {form.pais === 'México' ? (
+                      {bloqueado ? (
+                        <input
+                          id="entidad"
+                          name="entidad"
+                          type="text"
+                          placeholder={t.phEntidad}
+                          value=""
+                          disabled
+                          className="input-style opacity-50 cursor-not-allowed"
+                        />
+                      ) : form.pais === 'México' ? (
                         <EntidadAutocomplete
                           value={form.entidad}
                           onChange={(v) =>
@@ -1022,7 +1227,7 @@ function App() {
                           id="entidad"
                           name="entidad"
                           type="text"
-                          placeholder="Ej. Ciudad de México"
+                          placeholder={t.phEntidad}
                           value={form.entidad}
                           onChange={handleChange}
                           className="input-style"
@@ -1030,23 +1235,23 @@ function App() {
                       )}
                     </div>
 
-
                     <div className="space-y-1.5">
                       <label
                         htmlFor="municipio"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Municipio{' '}
-                        <span className="text-slate-400">(Opcional)</span>
+                        {t.municipio}{' '}
+                        <span className="text-slate-400">{t.opcional}</span>
                       </label>
                       <input
                         id="municipio"
                         name="municipio"
                         type="text"
-                        placeholder="Ej. Benito Juárez"
-                        value={form.municipio}
+                        placeholder={t.phMunicipio}
+                        value={bloqueado ? '' : form.municipio}
                         onChange={handleChange}
-                        className="input-style"
+                        disabled={bloqueado}
+                        className={`input-style ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
 
@@ -1055,18 +1260,19 @@ function App() {
                         htmlFor="localidad"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Localidad{' '}
-                        <span className="text-slate-400">(Opcional)</span>
+                        {t.localidad}{' '}
+                        <span className="text-slate-400">{t.opcional}</span>
                       </label>
                       <input
-                        id="localidad"
-                        name="localidad"
-                        type="text"
-                        placeholder="Ej. Lomas de la Selva"
-                        value={form.localidad}
-                        onChange={handleChange}
-                        className="input-style"
-                      />
+                      id="localidad"
+                      name="localidad"
+                      type="text"
+                      placeholder={t.phLocalidad}
+                      value={bloqueado ? '' : form.localidad}
+                      onChange={handleChange}
+                      disabled={bloqueado}
+                      className={`input-style ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    />
                     </div>
 
                     <div className="space-y-1.5">
@@ -1074,13 +1280,14 @@ function App() {
                         htmlFor="razonSocial"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Institucion Padre
+                        {t.institucionPadre}{' '}
+                        <span className="text-slate-400">{t.opcional}</span>
                       </label>
                       <input
                         id="razonSocial"
                         name="razonSocial"
                         type="text"
-                        placeholder="Ej. Universidad Nacional Autónoma de México"
+                        placeholder={t.phInstitucionPadre}
                         value={form.razonSocial}
                         onChange={handleChange}
                         className="input-style"
@@ -1092,7 +1299,8 @@ function App() {
                         htmlFor="privada"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Privada <span className="text-[#9d2449]">*</span>
+                        {t.privada}{' '}
+                        <span className="text-[#9d2449]">*</span>
                       </label>
                       <select
                         id="privada"
@@ -1102,32 +1310,15 @@ function App() {
                         required
                         className="input-style"
                       >
-                        <option value="">Selecciona una opción</option>
-                        <option value="SI">SI</option>
-                        <option value="NO">NO</option>
+                        <option value="">{t.seleccionaOpcion}</option>
+                        <option value="SI">{t.opcionSi}</option>
+                        <option value="NO">{t.opcionNo}</option>
                       </select>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="dondeSeCargo"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        Donde se cargó los datos
-                      </label>
-                      <input
-                        id="dondeSeCargo"
-                        name="dondeSeCargo"
-                        type="text"
-                        placeholder="Ej. Sistema de información, Oficina de control"
-                        value={form.dondeSeCargo}
-                        onChange={handleChange}
-                        className="input-style"
-                      />
-                    </div>
+                   
 
-
-                      <div className="space-y-1.5 md:col-span-2">
+                    <div className="space-y-1.5 md:col-span-2">
                       <div className="rounded-lg border border-slate-200 bg-slate-50/50">
                         <button
                           type="button"
@@ -1144,7 +1335,9 @@ function App() {
                             >
                               {form.poder.trim() ? '✓' : '·'}
                             </span>
-                            <span className="text-sm font-medium text-slate-700">Poder</span>
+                            <span className="text-sm font-medium text-slate-700">
+                              {t.poder}
+                            </span>
                             {form.poder.trim() && !poderAbierto && (
                               <span className="text-xs text-slate-400 truncate max-w-[200px]">
                                 — {form.poder}
@@ -1169,74 +1362,30 @@ function App() {
                           </svg>
                         </button>
 
-                        {poderAbierto && <PoderConOpciones form={form} setForm={setForm} />}
+                        {poderAbierto && (
+                          <PoderConOpciones
+                            form={form}
+                            setForm={setForm}
+                            t={t}
+                          />
+                        )}
                       </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="codigoIdentificacion"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        Código de identificación
-                      </label>
-                      <input
-                        id="codigoIdentificacion"
-                        name="codigoIdentificacion"
-                        type="text"
-                        placeholder="Ej. RFC, clave única, etc."
-                        value={form.codigoIdentificacion}
-                        onChange={handleChange}
-                        className="input-style"
-                      />
-                    </div>
 
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="fecha1"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        Fecha y hora
-                      </label>
-                      <input
-                        id="fecha1"
-                        name="fecha1"
-                        type="datetime-local"
-                        value={form.fecha1}
-                        onChange={handleChange}
-                        className="input-style w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="fecha2"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        Fecha y hora (segunda)
-                      </label>
-                      <input
-                        id="fecha2"
-                        name="fecha2"
-                        type="datetime-local"
-                        value={form.fecha2}
-                        onChange={handleChange}
-                        className="input-style w-full"
-                      />
-                    </div>
-              
 
                     <div className="space-y-1.5">
                       <label
                         htmlFor="nombre"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Nombre <span className="text-[#9d2449]">*</span>
+                        {t.nombre}{' '}
+                        <span className="text-[#9d2449]">*</span>
                       </label>
                       <input
                         id="nombre"
                         name="nombre"
                         type="text"
-                        placeholder="Nombre de la persona de contacto/responsable"
+                        placeholder={t.phNombre}
                         value={form.nombre}
                         onChange={handleChange}
                         required
@@ -1249,13 +1398,14 @@ function App() {
                         htmlFor="correo"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Correo <span className="text-[#9d2449]">*</span>
+                        {t.correo}{' '}
+                        <span className="text-[#9d2449]">*</span>
                       </label>
                       <input
                         id="correo"
                         name="correo"
                         type="email"
-                        placeholder="contacto@institucion.mx"
+                        placeholder={t.phCorreo}
                         value={form.correo}
                         onChange={handleChange}
                         required
@@ -1268,12 +1418,12 @@ function App() {
                         htmlFor="observaciones"
                         className="text-sm font-medium text-slate-700"
                       >
-                        Observaciones
+                        {t.observaciones}
                       </label>
                       <textarea
                         id="observaciones"
                         name="observaciones"
-                        placeholder="Cualquier dato extra que no encaje en los campos anteriores"
+                        placeholder={t.phObservaciones}
                         value={form.observaciones}
                         onChange={handleChange}
                         rows={3}
@@ -1284,22 +1434,22 @@ function App() {
 
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-xs text-slate-500">
-                      Los campos marcados con{' '}
-                      <span className="text-[#9d2449]">*</span> son
-                      obligatorios.
+                      {t.obligatorios}{' '}
+                      <span className="text-[#9d2449]">*</span>{' '}
+                      {t.obligatoriosSufijo}
                     </span>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449]"
                       >
-                        Cancelar
+                        {t.cancelar}
                       </button>
                       <button
                         type="submit"
                         className="inline-flex items-center justify-center rounded-md bg-[#13322e] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0d2320] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449]"
                       >
-                        Guardar institución
+                        {t.guardar}
                       </button>
                     </div>
                   </div>
@@ -1307,13 +1457,13 @@ function App() {
 
                 {enviado && (
                   <div className="mt-4 rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800 flex items-center justify-between gap-3">
-                    <span>Institución registrada correctamente.</span>
+                    <span>{t.registradaOk}</span>
                     <button
                       type="button"
                       onClick={() => setVista('lista')}
                       className="text-[#13322e] font-medium underline text-xs"
                     >
-                      Ver registradas
+                      {t.verRegistradas}
                     </button>
                   </div>
                 )}
@@ -1325,7 +1475,7 @@ function App() {
 
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="max-w-4xl mx-auto px-4 text-center text-xs text-slate-500">
-          Sistema de Registro Institucional · CNICyT
+          {t.footer}
         </div>
       </footer>
     </div>
