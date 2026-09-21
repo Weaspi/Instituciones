@@ -8,6 +8,11 @@
 } from 'react'
 import { PAISES } from './data/paises'
 import { ESTADOS_MEXICO } from './data/estados'
+import Header from './components/Header'
+import {
+  obtenerInstituciones,
+  type InstitucionAPI,
+} from './services/instituciones'
 
 type InstitucionForm = {
   nombreInstitucion: string
@@ -982,6 +987,35 @@ function App() {
   const [poderAbierto, setPoderAbierto] = useState(false)
   const [idioma, setIdioma] = useState<Idioma>('es')
   const t = TRADUCCIONES[idioma]
+
+  const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
+  const [cargandoInstituciones, setCargandoInstituciones] = useState(false)
+  const [errorInstituciones, setErrorInstituciones] = useState<string | null>(null)
+useEffect(() => {
+  useEffect(() => {
+
+
+ const cargarInstituciones = async () => {
+    try {
+      setCargandoInstituciones(true)
+      setErrorInstituciones(null)
+      const data = await obtenerInstituciones()
+      setInstitucionesAPI(data.results)
+    } catch (error) {
+      console.error('Error al cargar instituciones:', error)
+      setErrorInstituciones(
+        error instanceof Error
+          ? error.message
+          : 'Error al cargar las instituciones.'
+      )
+    } finally {
+      setCargandoInstituciones(false)
+    }
+  }
+  cargarInstituciones()
+}, [])
+
+// useEffect 2: limpiar campos si es EXTRANJERA
 useEffect(() => {
   if (form.tipoInstitucion === 'EXTRANJERA') {
     setForm((prev) => ({
@@ -1026,69 +1060,17 @@ const nueva: InstitucionGuardada = {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <nav className="sticky top-0 w-full h-18 shrink-0 bg-[#13322e] text-white border-b border-[#bc955c]/30 z-1020 shadow-md flex flex-col justify-center">
-        <div className="max-w-350 h-full w-full mx-auto px-4 md:px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-white/5 rounded border border-[#bc955c]/20 hidden md:block">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-[#bc955c]"
-              >
-                <path d="M3 21h18" />
-                <path d="M5 21V7l8-4 8 4v14" />
-                <path d="M17 21v-8.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5V21" />
-              </svg>
-            </div>
-            <h1 className="font-patria text-lg sm:text-xl md:text-[1.9rem] font-normal tracking-wide leading-none whitespace-nowrap">
-              {t.appTitulo}
-            </h1>
-          </div>
+<Header
+  t={t}
+  vista={vista}
+  totalRegistradas={instituciones.length}
+  onCambiarIdioma={() => setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))}
+  onIrAlta={() => setVista('alta')}
+  onIrLista={() => setVista('lista')}
+/>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
-              }
-              className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-white/80 hover:bg-white/10 border border-white/20"
-            >
-              {t.btnIdioma}
-            </button>
-            <button
-              type="button"
-              onClick={() => setVista('alta')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                vista === 'alta'
-                  ? 'bg-white text-[#13322e]'
-                  : 'text-white/80 hover:bg-white/10'
-              }`}
-            >
-              {t.navAlta}
-            </button>
-            <button
-              type="button"
-              onClick={() => setVista('lista')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                vista === 'lista'
-                  ? 'bg-white text-[#13322e]'
-                  : 'text-white/80 hover:bg-white/10'
-              }`}
-            >
-              {t.navRegistradas} ({instituciones.length})
-            </button>
-          </div>
-        </div>
-      </nav>
 
-      <main className="flex-1 w-full relative z-10 flex flex-col">
+      <main id="mainContent" className="flex-1 w-full relative z-10 flex flex-col">
         {vista === 'lista' ? (
           <ListaInstituciones instituciones={instituciones} t={t} idioma={idioma} />
         ) : (
