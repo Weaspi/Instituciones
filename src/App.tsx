@@ -13,6 +13,7 @@ import {
   obtenerInstituciones,
   type InstitucionAPI,
 } from './services/instituciones'
+import Footer from './components/Footer'
 
 type InstitucionForm = {
   nombreInstitucion: string
@@ -102,6 +103,11 @@ const TRADUCCIONES = {
     correo: 'Correo',
     observaciones: 'Observaciones',
     opcional: '(Opcional)',
+    irContenido: 'Ir al contenido principal',
+    altEscudo: 'Ir a la página de inicio del Gobierno de México',
+    menu: 'Menú',
+    menuTramites: 'Trámites',
+    menuGobierno: 'Gobierno',
 
     nivelesTitulo: 'Tipo de institución por nivel',
     nivelesSubtitulo:
@@ -156,6 +162,12 @@ const TRADUCCIONES = {
     opcionesNivelUno: ['Pública', 'Privada', 'Extranjera', 'Otro'],
     opcionesNivelDos: ['Estatal', 'Federal', 'Empresa', 'Otro'],
     opcionesPoder: ['Estatal', 'Federal', 'Municipal', 'Otro'],
+
+    footerTituloGobmx: '¿Qué es gob.mx?',
+    footerLeerMas: 'Leer más',
+    footerEnlaces: 'Enlaces',
+    footerSiguenos: 'Síguenos en',
+    footerDenuncia: 'Denuncia contra servidores públicos',
   },
   en: {
     appTitulo: 'Institutions',
@@ -186,6 +198,11 @@ const TRADUCCIONES = {
     correo: 'Email',
     observaciones: 'Notes',
     opcional: '(Optional)',
+    irContenido: 'Go to main content',
+    altEscudo: 'Go to the Government of Mexico home page',
+    menu: 'Menu',
+    menuTramites: 'Procedures',
+    menuGobierno: 'Government',
 
     nivelesTitulo: 'Institution type by level',
     nivelesSubtitulo:
@@ -239,10 +256,16 @@ const TRADUCCIONES = {
     opcionesNivelUno: ['Public', 'Private', 'Foreign', 'Other'],
     opcionesNivelDos: ['State', 'Federal', 'Company', 'Other'],
     opcionesPoder: ['State', 'Federal', 'Municipal', 'Other'],
-  },
-} as const
 
-type Traduccion = typeof TRADUCCIONES['es'] | typeof TRADUCCIONES['en']
+    footerTituloGobmx: 'What is gob.mx?',
+    footerLeerMas: 'Read more',
+    footerEnlaces: 'Links',
+    footerSiguenos: 'Follow us',
+    footerDenuncia: 'Report public officials',
+  },
+}
+
+type Traduccion = typeof TRADUCCIONES['es']
 
 
 function EntidadAutocomplete({
@@ -842,22 +865,55 @@ function NivelesAcordeon({
 // Lista
 function ListaInstituciones({
   instituciones,
+  institucionesAPI,
+  cargando,
+  error,
   t,
   idioma,
 }: {
   instituciones: InstitucionGuardada[]
+  institucionesAPI: InstitucionAPI[]
+  cargando: boolean
+  error: string | null
   t: Traduccion
   idioma: 'es' | 'en'
 }) {
-  const [busqueda, setBusqueda] = useState('')
+const [busqueda, setBusqueda] = useState('')
 
-  const filtradas = useMemo(() => {
-    const q = normalizar(busqueda)
-    if (!q) return instituciones
-    return instituciones.filter((i) =>
-      normalizar(i.nombreInstitucion).includes(q)
-    )
-  }, [busqueda, instituciones])
+const todas = useMemo(() => {
+  const apiConvertidas: InstitucionGuardada[] = (institucionesAPI ?? []).map((i) => ({
+    _id: `api-${i.id_institucion}`,
+    fechaRegistro: '',
+    nombreInstitucion: i.desc_institucion,
+    tipoInstitucion: i.tipo_institucion ?? '',
+    tipoInstitucionNivelUno: '',
+    tipoInstitucionNivelDos: '',
+    tipoInstitucionNivelTres: '',
+    pais: String(i.id_pais ?? ''),
+    entidad: String(i.id_entidad ?? ''),
+    municipio: i.id_municipio ? String(i.id_municipio) : '',
+    localidad: i.id_localidad ? String(i.id_localidad) : '',
+    razonSocial: i.id_institucion_padre
+      ? String(i.id_institucion_padre)
+      : '',
+    privada: i.ind_empresa ?? '',
+    poder: i.tipo_poder ?? '',
+    nombre: '',
+    correo: '',
+    observaciones: i.origen_informacion ?? '',
+  }))
+
+  return [...instituciones, ...apiConvertidas]
+}, [instituciones, institucionesAPI])
+
+
+const filtradas = useMemo(() => {
+  const q = normalizar(busqueda)
+  if (!q) return todas
+  return todas.filter((i) =>
+    normalizar(i.nombreInstitucion).includes(q)
+  )
+}, [busqueda, todas])
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8">
@@ -906,9 +962,21 @@ function ListaInstituciones({
             </div>
           </div>
 
+                  {cargando && (
+            <div className="text-center py-4 text-slate-500 text-sm">
+              {idioma === 'es' ? 'Cargando instituciones...' : 'Loading institutions...'}
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
           {filtradas.length === 0 ? (
             <div className="text-center py-12 text-slate-500 text-sm">
-              {instituciones.length === 0
+              {todas.length === 0
                 ? t.sinRegistros
                 : t.sinCoincidencias}
             </div>
@@ -991,10 +1059,9 @@ function App() {
   const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
   const [cargandoInstituciones, setCargandoInstituciones] = useState(false)
   const [errorInstituciones, setErrorInstituciones] = useState<string | null>(null)
-useEffect(() => {
+
+
   useEffect(() => {
-
-
  const cargarInstituciones = async () => {
     try {
       setCargandoInstituciones(true)
@@ -1015,7 +1082,6 @@ useEffect(() => {
   cargarInstituciones()
 }, [])
 
-// useEffect 2: limpiar campos si es EXTRANJERA
 useEffect(() => {
   if (form.tipoInstitucion === 'EXTRANJERA') {
     setForm((prev) => ({
@@ -1059,11 +1125,11 @@ const nueva: InstitucionGuardada = {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-<Header
+   <div className="min-h-screen bg-slate-100 flex flex-col">
+    <Header
   t={t}
   vista={vista}
-  totalRegistradas={instituciones.length}
+totalRegistradas={instituciones.length + institucionesAPI.length}
   onCambiarIdioma={() => setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))}
   onIrAlta={() => setVista('alta')}
   onIrLista={() => setVista('lista')}
@@ -1072,7 +1138,14 @@ const nueva: InstitucionGuardada = {
 
       <main id="mainContent" className="flex-1 w-full relative z-10 flex flex-col">
         {vista === 'lista' ? (
-          <ListaInstituciones instituciones={instituciones} t={t} idioma={idioma} />
+          <ListaInstituciones
+            instituciones={instituciones}
+            institucionesAPI={institucionesAPI}
+            cargando={cargandoInstituciones}
+            error={errorInstituciones}
+            t={t}
+            idioma={idioma}
+/>
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1455,11 +1528,7 @@ const nueva: InstitucionGuardada = {
         )}
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="max-w-4xl mx-auto px-4 text-center text-xs text-slate-500">
-          {t.footer}
-        </div>
-      </footer>
+<Footer t={t} />
     </div>
   )
 }
