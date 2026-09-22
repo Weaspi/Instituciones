@@ -22,7 +22,9 @@ export type InstitucionAPI = {
   ind_inst_superior?: string | null
 }
 
-export async function obtenerInstituciones(): Promise<InstitucionAPI[]> {
+export async function obtenerInstituciones(): Promise<{
+  results: InstitucionAPI[]
+}> {
   const url = `${API_BASE_URL}/api/v1/instituciones-c/`
 
   console.log('CONSULTANDO API:', url)
@@ -33,7 +35,7 @@ export async function obtenerInstituciones(): Promise<InstitucionAPI[]> {
 
   if (!response.ok) {
     throw new Error(
-      `Error al obtener instituciones: ${response.status}`
+        `Error al obtener instituciones: ${response.status}`
     )
   }
 
@@ -43,5 +45,11 @@ export async function obtenerInstituciones(): Promise<InstitucionAPI[]> {
   console.log('ES ARRAY:', Array.isArray(data))
   console.log('CANTIDAD:', Array.isArray(data) ? data.length : 0)
 
-  return Array.isArray(data) ? data : []
+  return {
+    results: Array.isArray(data)
+      ? data
+      : Array.isArray(data?.results)
+        ? data.results
+        : [],
+  }
 }
