@@ -11,6 +11,7 @@ import { ESTADOS_MEXICO } from './data/estados'
 import Header from './components/Header'
 import {
   obtenerInstituciones,
+  crearInstitucion,
   type InstitucionAPI,
 } from './services/instituciones'
 import Footer from './components/Footer'
@@ -35,7 +36,7 @@ type InstitucionForm = {
 
 type InstitucionGuardada = InstitucionForm & {
   _id: string
-  fechaRegistro: string 
+  fechaRegistro: string
 }
 
 const FORM_INICIAL: InstitucionForm = {
@@ -69,7 +70,6 @@ const normalizarMayus = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
 
-
 type Idioma = 'es' | 'en'
 
 const TRADUCCIONES = {
@@ -84,7 +84,6 @@ const TRADUCCIONES = {
     altaSubtitulo:
       'Datos mínimos para identificar y validar a la institución responsable dentro del catálogo.',
 
-  
     nombreInstitucion: 'Nombre de institución',
     tipoInstitucion: 'Tipo de institución',
     seleccionaOpcion: 'Selecciona una opción',
@@ -110,8 +109,7 @@ const TRADUCCIONES = {
     menuGobierno: 'Gobierno',
 
     nivelesTitulo: 'Tipo de institución por nivel',
-    nivelesSubtitulo:
-      'Selecciona 1 de las 3 opciones   ',
+    nivelesSubtitulo: 'Selecciona 1 de las 3 opciones   ',
     nivelUno: 'Tipo institución nivel uno',
     nivelDos: 'Tipo institución nivel dos',
     nivelTres: 'Tipo institución nivel tres',
@@ -130,7 +128,6 @@ const TRADUCCIONES = {
     obligatoriosSufijo: 'son obligatorios.',
     registradaOk: 'Institución registrada correctamente.',
     verRegistradas: 'Ver registradas',
-
 
     catalogo: 'Catálogo',
     listaTitulo: 'Instituciones registradas',
@@ -205,8 +202,7 @@ const TRADUCCIONES = {
     menuGobierno: 'Government',
 
     nivelesTitulo: 'Institution type by level',
-    nivelesSubtitulo:
-      'Select 1 of the 3 options.',
+    nivelesSubtitulo: 'Select 1 of the 3 options.',
     nivelUno: 'Institution type level one',
     nivelDos: 'Institution type level two',
     nivelTres: 'Institution type level three',
@@ -266,7 +262,6 @@ const TRADUCCIONES = {
 }
 
 type Traduccion = typeof TRADUCCIONES['es']
-
 
 function EntidadAutocomplete({
   value,
@@ -362,7 +357,6 @@ function EntidadAutocomplete({
   )
 }
 
-
 function PaisAutocomplete({
   value,
   onChange,
@@ -457,7 +451,6 @@ function PaisAutocomplete({
     </div>
   )
 }
-
 
 function NivelConOpciones({
   form,
@@ -590,7 +583,7 @@ function NivelConOpciones({
   )
 }
 
-// Poder 
+// Poder
 function PoderConOpciones({
   form,
   setForm,
@@ -718,7 +711,7 @@ function PoderConOpciones({
   )
 }
 
-// Acordeón 
+// Acordeón
 type NivelKey =
   | 'tipoInstitucionNivelUno'
   | 'tipoInstitucionNivelDos'
@@ -870,6 +863,9 @@ function ListaInstituciones({
   error,
   t,
   idioma,
+  paginaActual,
+  totalPaginas,
+  onCambiarPagina,
 }: {
   instituciones: InstitucionGuardada[]
   institucionesAPI: InstitucionAPI[]
@@ -877,43 +873,45 @@ function ListaInstituciones({
   error: string | null
   t: Traduccion
   idioma: 'es' | 'en'
+  paginaActual: number
+  totalPaginas: number
+  onCambiarPagina: (p: number) => void
 }) {
-const [busqueda, setBusqueda] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
-const todas = useMemo(() => {
-  const apiConvertidas: InstitucionGuardada[] = (institucionesAPI ?? []).map((i) => ({
-    _id: `api-${i.id_institucion}`,
-    fechaRegistro: '',
-    nombreInstitucion: i.desc_institucion,
-    tipoInstitucion: i.tipo_institucion ?? '',
-    tipoInstitucionNivelUno: '',
-    tipoInstitucionNivelDos: '',
-    tipoInstitucionNivelTres: '',
-    pais: String(i.id_pais ?? ''),
-    entidad: String(i.id_entidad ?? ''),
-    municipio: i.id_municipio ? String(i.id_municipio) : '',
-    localidad: i.id_localidad ? String(i.id_localidad) : '',
-    razonSocial: i.id_institucion_padre
-      ? String(i.id_institucion_padre)
-      : '',
-    privada: i.ind_empresa ?? '',
-    poder: i.tipo_poder ?? '',
-    nombre: '',
-    correo: '',
-    observaciones: i.origen_informacion ?? '',
-  }))
+  const todas = useMemo(() => {
+    const apiConvertidas: InstitucionGuardada[] = (institucionesAPI ?? []).map(
+      (i) => ({
+        _id: `api-${i.id_institucion}`,
+        fechaRegistro: '',
+        nombreInstitucion: i.desc_institucion,
+        tipoInstitucion: i.tipo_institucion ?? '',
+        tipoInstitucionNivelUno: '',
+        tipoInstitucionNivelDos: '',
+        tipoInstitucionNivelTres: '',
+        pais: String(i.id_pais ?? ''),
+        entidad: String(i.id_entidad ?? ''),
+        municipio: i.id_municipio ? String(i.id_municipio) : '',
+        localidad: i.id_localidad ? String(i.id_localidad) : '',
+        razonSocial: i.id_institucion_padre
+          ? String(i.id_institucion_padre)
+          : '',
+        privada: i.ind_empresa ?? '',
+        poder: i.tipo_poder ?? '',
+        nombre: '',
+        correo: '',
+        observaciones: i.origen_informacion ?? '',
+      })
+    )
 
-  return [...instituciones, ...apiConvertidas]
-}, [instituciones, institucionesAPI])
+    return [...instituciones, ...apiConvertidas]
+  }, [instituciones, institucionesAPI])
 
-
-const filtradas = useMemo(() => {
-  const q = normalizar(busqueda)
-  if (!q) return todas
-  return todas.filter((i) =>
-    normalizar(i.nombreInstitucion).includes(q)
-  )
-}, [busqueda, todas])
+  const filtradas = useMemo(() => {
+    const q = normalizar(busqueda)
+    if (!q) return todas
+    return todas.filter((i) => normalizar(i.nombreInstitucion).includes(q))
+  }, [busqueda, todas])
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8">
@@ -962,9 +960,11 @@ const filtradas = useMemo(() => {
             </div>
           </div>
 
-                  {cargando && (
+          {cargando && (
             <div className="text-center py-4 text-slate-500 text-sm">
-              {idioma === 'es' ? 'Cargando instituciones...' : 'Loading institutions...'}
+              {idioma === 'es'
+                ? 'Cargando instituciones...'
+                : 'Loading institutions...'}
             </div>
           )}
 
@@ -976,69 +976,98 @@ const filtradas = useMemo(() => {
 
           {filtradas.length === 0 ? (
             <div className="text-center py-12 text-slate-500 text-sm">
-              {todas.length === 0
-                ? t.sinRegistros
-                : t.sinCoincidencias}
+              {todas.length === 0 ? t.sinRegistros : t.sinCoincidencias}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-md border border-slate-200">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colNombre}
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colPais}
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colEntidad}
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colTipo}
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colResponsable}
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colCorreo}
-                    </th>
-                    <th className="text-left font-medium px-3 py-2">
-                      {t.colFechaRegistro}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filtradas.map((i) => (
-                    <tr key={i._id} className="hover:bg-slate-50">
-                      <td className="px-3 py-2 text-slate-800 font-medium">
-                        {i.nombreInstitucion}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{i.pais}</td>
-                      <td className="px-3 py-2 text-slate-600">
-                        {i.entidad || t.guion}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">
-                        {i.tipoInstitucionNivelUno || t.guion}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{i.nombre}</td>
-                      <td className="px-3 py-2 text-slate-600">{i.correo}</td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
-                      {i.fechaRegistro
-                        ? new Date(i.fechaRegistro).toLocaleString(idioma === 'es' ? 'es-MX' : 'en-US', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : t.guion}
-                    </td>
+            <>
+              <div className="overflow-x-auto rounded-md border border-slate-200">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colNombre}
+                      </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colPais}
+                      </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colEntidad}
+                      </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colTipo}
+                      </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colResponsable}
+                      </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colCorreo}
+                      </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {t.colFechaRegistro}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filtradas.map((i) => (
+                      <tr key={i._id} className="hover:bg-slate-50">
+                        <td className="px-3 py-2 text-slate-800 font-medium">
+                          {i.nombreInstitucion}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">{i.pais}</td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {i.entidad || t.guion}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {i.tipoInstitucionNivelUno || t.guion}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {i.nombre}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">{i.correo}</td>
+                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
+                          {i.fechaRegistro
+                            ? new Date(i.fechaRegistro).toLocaleString(
+                                idioma === 'es' ? 'es-MX' : 'en-US',
+                                {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                }
+                              )
+                            : t.guion}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  type="button"
+                  disabled={paginaActual <= 1}
+                  onClick={() => onCambiarPagina(paginaActual - 1)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-md disabled:opacity-40"
+                >
+                  ← Anterior
+                </button>
+
+                <span className="text-sm text-slate-500">
+                  Página {paginaActual} de {totalPaginas}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={paginaActual >= totalPaginas}
+                  onClick={() => onCambiarPagina(paginaActual + 1)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-md disabled:opacity-40"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -1046,7 +1075,7 @@ const filtradas = useMemo(() => {
   )
 }
 
-//  App 
+// App
 type Vista = 'alta' | 'lista'
 
 function App() {
@@ -1060,52 +1089,58 @@ function App() {
 
   const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
   const [cargandoInstituciones, setCargandoInstituciones] = useState(false)
-  const [errorInstituciones, setErrorInstituciones] = useState<string | null>(null)
-
+  const [errorInstituciones, setErrorInstituciones] = useState<string | null>(
+    null
+  )
+  const [paginaActual, setPaginaActual] = useState(1)
+  const [totalPaginas, setTotalPaginas] = useState(1)
 
   useEffect(() => {
- const cargarInstituciones = async () => {
-    try {
-      setCargandoInstituciones(true)
-      setErrorInstituciones(null)
-      const data = await obtenerInstituciones()
-      setInstitucionesAPI(data.results)
-    } catch (error) {
-      console.error('Error al cargar instituciones:', error)
-      setErrorInstituciones(
-        error instanceof Error
-          ? error.message
-          : 'Error al cargar las instituciones.'
-      )
-    } finally {
-      setCargandoInstituciones(false)
-    }
-  }
-  cargarInstituciones()
-}, [])
+    const cargarInstituciones = async () => {
+      try {
+        setCargandoInstituciones(true)
+        setErrorInstituciones(null)
 
-useEffect(() => {
-  if (form.tipoInstitucion === 'EXTRANJERA') {
-    setForm((prev) => ({
-      ...prev,
-      entidad: '',
-      municipio: '',
-      localidad: '',
-    }))
-  }
-}, [form.tipoInstitucion])
+        const data = await obtenerInstituciones(paginaActual)
+
+        setInstitucionesAPI(data.results)
+        setTotalPaginas(Math.ceil(data.count / 10))
+      } catch (error) {
+        console.error('Error al cargar instituciones:', error)
+        setErrorInstituciones(
+          error instanceof Error ? error.message : 'Error al cargar'
+        )
+      } finally {
+        setCargandoInstituciones(false)
+      }
+    }
+    cargarInstituciones()
+  }, [paginaActual])
+
+  useEffect(() => {
+    if (form.tipoInstitucion === 'EXTRANJERA') {
+      setForm((prev) => ({
+        ...prev,
+        entidad: '',
+        municipio: '',
+        localidad: '',
+      }))
+    }
+  }, [form.tipoInstitucion])
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
-const bloqueado = form.tipoInstitucion === 'EXTRANJERA'
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+
+  const bloqueado = form.tipoInstitucion === 'EXTRANJERA'
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const CAMPOS_EXCLUIDOS = ['correo']
-
     const formFinal = Object.fromEntries(
       Object.entries(form).map(([key, value]) => {
         if (typeof value !== 'string') return [key, value]
@@ -1114,31 +1149,74 @@ const bloqueado = form.tipoInstitucion === 'EXTRANJERA'
       })
     ) as InstitucionForm
 
-const nueva: InstitucionGuardada = {
-  ...formFinal,
-  _id: crypto.randomUUID(),
-  fechaRegistro: new Date().toISOString(),
-}
+    const payload = {
+      desc_institucion: formFinal.nombreInstitucion,
 
-    setInstituciones((prev) => [nueva, ...prev])
-    console.log('Institución registrada:', formFinal)
-    setEnviado(true)
-    setForm(FORM_INICIAL)
+      cve_institucion: `INST-${Date.now()}`,
+      cve_peoplesoft: '',
+      tipo_institucion: formFinal.tipoInstitucion || '',
+      id_tipo_institucion: formFinal.tipoInstitucion === 'NACIONAL' ? 1 : 2,
+
+      id_pais: Number(formFinal.pais) || 1,
+      id_entidad: Number(formFinal.entidad) || 1,
+      id_entidad_ubicacion: 1,
+      id_municipio: Number(formFinal.municipio) || 1,
+      id_localidad: Number(formFinal.localidad) || 1,
+      id_institucion_padre: Number(formFinal.razonSocial) || 1,
+
+      id_tipo_inst_nivel_uno: 1,
+      id_tipo_inst_nivel_dos: 1,
+      id_tipo_inst_nivel_tres: 1,
+
+      ind_empresa: formFinal.privada === 'SI' ? 'S' : 'N',
+
+      origen_informacion: formFinal.observaciones || '',
+      tipo_poder: formFinal.poder || '',
+      ind_inst_superior: 'N',
+    }
+
+    try {
+      setEnviado(true)
+
+      const nuevaAPI = await crearInstitucion(payload)
+      console.log('Institución guardada en API:', nuevaAPI)
+
+      const nuevaLocal: InstitucionGuardada = {
+        ...formFinal,
+        _id: crypto.randomUUID(),
+        fechaRegistro: new Date().toISOString(),
+      }
+      setInstituciones((prev) => [nuevaLocal, ...prev])
+
+      setForm(FORM_INICIAL)
+    } catch (error) {
+      console.error('Error al guardar en API:', error)
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Error al guardar la institución'
+      )
+      setEnviado(false)
+    }
   }
 
   return (
-   <div className="min-h-screen bg-slate-100 flex flex-col">
-    <Header
-  t={t}
-  vista={vista}
-totalRegistradas={instituciones.length + institucionesAPI.length}
-  onCambiarIdioma={() => setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))}
-  onIrAlta={() => setVista('alta')}
-  onIrLista={() => setVista('lista')}
-/>
+    <div className="min-h-screen bg-slate-100 flex flex-col">
+      <Header
+        t={t}
+        vista={vista}
+        totalRegistradas={instituciones.length + institucionesAPI.length}
+        onCambiarIdioma={() =>
+          setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
+        }
+        onIrAlta={() => setVista('alta')}
+        onIrLista={() => setVista('lista')}
+      />
 
-
-      <main id="mainContent" className="flex-1 w-full relative z-10 flex flex-col">
+      <main
+        id="mainContent"
+        className="flex-1 w-full relative z-10 flex flex-col"
+      >
         {vista === 'lista' ? (
           <ListaInstituciones
             instituciones={instituciones}
@@ -1147,7 +1225,10 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
             error={errorInstituciones}
             t={t}
             idioma={idioma}
-/>
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            onCambiarPagina={setPaginaActual}
+          />
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1229,9 +1310,7 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
                         className="input-style"
                       >
                         <option value="">{t.seleccionaOpcion}</option>
-                        <option value="NACIONAL">
-                          {t.opcionNacional}
-                        </option>
+                        <option value="NACIONAL">{t.opcionNacional}</option>
                         <option value="EXTRANJERA">
                           {t.opcionExtranjera}
                         </option>
@@ -1308,7 +1387,9 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
                         value={bloqueado ? '' : form.municipio}
                         onChange={handleChange}
                         disabled={bloqueado}
-                        className={`input-style ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`input-style ${
+                          bloqueado ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       />
                     </div>
 
@@ -1321,15 +1402,17 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
                         <span className="text-slate-400">{t.opcional}</span>
                       </label>
                       <input
-                      id="localidad"
-                      name="localidad"
-                      type="text"
-                      placeholder={t.phLocalidad}
-                      value={bloqueado ? '' : form.localidad}
-                      onChange={handleChange}
-                      disabled={bloqueado}
-                      className={`input-style ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    />
+                        id="localidad"
+                        name="localidad"
+                        type="text"
+                        placeholder={t.phLocalidad}
+                        value={bloqueado ? '' : form.localidad}
+                        onChange={handleChange}
+                        disabled={bloqueado}
+                        className={`input-style ${
+                          bloqueado ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      />
                     </div>
 
                     <div className="space-y-1.5">
@@ -1372,8 +1455,6 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
                         <option value="NO">{t.opcionNo}</option>
                       </select>
                     </div>
-
-                   
 
                     <div className="space-y-1.5 md:col-span-2">
                       <div className="rounded-lg border border-slate-200 bg-slate-50/50">
@@ -1428,7 +1509,6 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
                         )}
                       </div>
                     </div>
-
 
                     <div className="space-y-1.5">
                       <label
@@ -1530,7 +1610,7 @@ totalRegistradas={instituciones.length + institucionesAPI.length}
         )}
       </main>
 
-<Footer t={t} />
+      <Footer t={t} />
     </div>
   )
 }

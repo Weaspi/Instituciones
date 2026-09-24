@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.24:8000'
+const API_BASE_URL = 'http://172.16.11.20:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -22,10 +22,13 @@ export type InstitucionAPI = {
   ind_inst_superior?: string | null
 }
 
-export async function obtenerInstituciones(): Promise<{
-  results: InstitucionAPI[]
+export async function obtenerInstituciones(page = 1): Promise<{
+    count: number
+    next: string | null
+    previous: string | null
+    results: InstitucionAPI[]
 }> {
-  const url = `${API_BASE_URL}/api/v1/instituciones-c/`
+  const url = `${API_BASE_URL}/api/v1/instituciones-c/?page=${page}`
 
   console.log('CONSULTANDO API:', url)
 
@@ -34,9 +37,7 @@ export async function obtenerInstituciones(): Promise<{
   console.log('STATUS API:', response.status)
 
   if (!response.ok) {
-    throw new Error(
-        `Error al obtener instituciones: ${response.status}`
-    )
+    throw new Error(`Error al obtener instituciones: ${response.status}`)
   }
 
   const data = await response.json()
@@ -51,5 +52,38 @@ export async function obtenerInstituciones(): Promise<{
       : Array.isArray(data?.results)
         ? data.results
         : [],
+    count: data.count || 0,
+    next: data.next || null,
+    previous: data.previous || null,
   }
+}
+
+export async function crearInstitucion(data: {
+  desc_institucion: string
+  id_tipo_institucion: number
+  id_pais: number
+  id_entidad: number | null
+  id_municipio: number | null
+  id_localidad: number | null
+  id_institucion_padre: number | null
+  ind_empresa: string
+  tipo_poder: string | null
+  origen_informacion: string | null
+}) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/instituciones-c/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(
+      `Error al crear institución: ${response.status} - ${errorText}`
+    )
+  }
+
+  return response.json()
 }
