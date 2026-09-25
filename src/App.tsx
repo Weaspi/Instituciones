@@ -292,6 +292,7 @@ function EntidadAutocomplete({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+ 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!abierto && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
@@ -583,7 +584,6 @@ function NivelConOpciones({
   )
 }
 
-// Poder
 function PoderConOpciones({
   form,
   setForm,
@@ -711,7 +711,6 @@ function PoderConOpciones({
   )
 }
 
-// Acordeón
 type NivelKey =
   | 'tipoInstitucionNivelUno'
   | 'tipoInstitucionNivelDos'
@@ -759,7 +758,7 @@ function NivelesAcordeon({
           </span>
           <span className="text-sm font-medium text-slate-700">{label}</span>
           {tieneValor && !activo && (
-            <span className="text-xs text-slate-400 truncate max-w-[200px]">
+            <span className="text-xs text-slate-400 truncate max-w-50">
               — {form[nivelKey]}
             </span>
           )}
@@ -866,6 +865,8 @@ function ListaInstituciones({
   paginaActual,
   totalPaginas,
   onCambiarPagina,
+  filtros,
+  setFiltros,
 }: {
   instituciones: InstitucionGuardada[]
   institucionesAPI: InstitucionAPI[]
@@ -876,8 +877,21 @@ function ListaInstituciones({
   paginaActual: number
   totalPaginas: number
   onCambiarPagina: (p: number) => void
+  filtros: {
+    search: string
+    id_pais: number | null
+    tipo_institucion: string | null
+
+  }
+  setFiltros: React.Dispatch<React.SetStateAction<{
+    search: string
+    id_pais: number | null
+    tipo_institucion: string | null
+
+  }>>
+
 }) {
-  const [busqueda, setBusqueda] = useState('')
+  const [busqueda,] = useState('')
 
   const todas = useMemo(() => {
     const apiConvertidas: InstitucionGuardada[] = (institucionesAPI ?? []).map(
@@ -949,15 +963,73 @@ function ListaInstituciones({
               </div>
             </div>
 
-            <div className="w-full md:w-72">
-              <input
-                type="text"
-                placeholder={t.buscar}
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="input-style w-full"
-              />
-            </div>
+<div className="w-full grid grid-cols-1 md:grid-cols-4 gap-3">
+  <div>
+    <label className="text-xs font-medium text-slate-500 mb-1 block">
+      {idioma === 'es' ? 'Buscar' : 'Search'}
+    </label>
+    <input
+      type="text"
+      placeholder={t.buscar}
+      value={filtros.search}
+      onChange={(e) => {
+        setFiltros((prev) => ({ ...prev, search: e.target.value }))
+        onCambiarPagina(1)   
+      }}
+      className="input-style w-full"
+    />
+  </div>
+
+  <div>
+    <label className="text-xs font-medium text-slate-500 mb-1 block">
+      {idioma === 'es' ? 'País' : 'Country'}
+    </label>
+    <select
+      value={filtros.id_pais ?? ''}
+      onChange={(e) => {
+        setFiltros((prev) => ({
+          ...prev,
+          id_pais: e.target.value ? Number(e.target.value) : null,
+        }))
+        onCambiarPagina(1)
+      }}
+      className="input-style w-full"
+    >
+      <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
+      <option value="143">México</option>
+      <option value="56">Otro</option>
+    </select>
+  </div>
+
+
+  <div>
+    <label className="text-xs font-medium text-slate-500 mb-1 block">
+      {idioma === 'es' ? 'Tipo' : 'Type'}
+    </label>
+    <select
+      value={filtros.tipo_institucion ?? ''}
+      onChange={(e) => {
+        setFiltros((prev) => ({
+          ...prev,
+          tipo_institucion: e.target.value || null,
+        }))
+        onCambiarPagina(1)
+      }}
+      className="input-style w-full"
+    >
+      <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
+      <option value="NACIONAL">
+        {idioma === 'es' ? 'Nacional' : 'National'}
+      </option>
+      <option value="EXTRANJERA">
+        {idioma === 'es' ? 'Extranjera' : 'Foreign'}
+      </option>
+    </select>
+  </div>
+  <div>
+  </div>
+</div>
+
           </div>
 
           {cargando && (
@@ -1075,7 +1147,6 @@ function ListaInstituciones({
   )
 }
 
-// App
 type Vista = 'alta' | 'lista'
 
 function App() {
@@ -1095,27 +1166,41 @@ function App() {
   const [paginaActual, setPaginaActual] = useState(1)
   const [totalPaginas, setTotalPaginas] = useState(1)
 
-  useEffect(() => {
-    const cargarInstituciones = async () => {
-      try {
-        setCargandoInstituciones(true)
-        setErrorInstituciones(null)
+  const [filtros, setFiltros] = useState({
+  search: '',
+  id_pais: null as number | null,
+  tipo_institucion: null as string | null,
 
-        const data = await obtenerInstituciones(paginaActual)
+})
 
-        setInstitucionesAPI(data.results)
-        setTotalPaginas(Math.ceil(data.count / 10))
-      } catch (error) {
-        console.error('Error al cargar instituciones:', error)
-        setErrorInstituciones(
-          error instanceof Error ? error.message : 'Error al cargar'
-        )
-      } finally {
-        setCargandoInstituciones(false)
-      }
+useEffect(() => {
+  const cargarInstituciones = async () => {
+    try {
+      setCargandoInstituciones(true)
+      setErrorInstituciones(null)
+
+      const data = await obtenerInstituciones({
+        page: paginaActual,
+        search: filtros.search,
+        id_pais: filtros.id_pais,
+        tipo_institucion: filtros.tipo_institucion,
+
+      })
+
+      setInstitucionesAPI(data.results)
+      setTotalPaginas(Math.ceil(data.count / 10))
+    } catch (error) {
+      console.error('Error al cargar instituciones:', error)
+      setErrorInstituciones(
+        error instanceof Error ? error.message : 'Error al cargar'
+      )
+    } finally {
+      setCargandoInstituciones(false)
     }
-    cargarInstituciones()
-  }, [paginaActual])
+  }
+  cargarInstituciones()
+}, [paginaActual, filtros])
+  
 
   useEffect(() => {
     if (form.tipoInstitucion === 'EXTRANJERA') {
@@ -1218,17 +1303,19 @@ function App() {
         className="flex-1 w-full relative z-10 flex flex-col"
       >
         {vista === 'lista' ? (
-          <ListaInstituciones
-            instituciones={instituciones}
-            institucionesAPI={institucionesAPI}
-            cargando={cargandoInstituciones}
-            error={errorInstituciones}
-            t={t}
-            idioma={idioma}
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            onCambiarPagina={setPaginaActual}
-          />
+        <ListaInstituciones
+          instituciones={instituciones}
+          institucionesAPI={institucionesAPI}
+          cargando={cargandoInstituciones}
+          error={errorInstituciones}
+          t={t}
+          idioma={idioma}
+          paginaActual={paginaActual}
+          totalPaginas={totalPaginas}
+          onCambiarPagina={setPaginaActual}
+          filtros={filtros}
+          setFiltros={setFiltros}
+        />
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1476,11 +1563,7 @@ function App() {
                             <span className="text-sm font-medium text-slate-700">
                               {t.poder}
                             </span>
-                            {form.poder.trim() && !poderAbierto && (
-                              <span className="text-xs text-slate-400 truncate max-w-[200px]">
-                                — {form.poder}
-                              </span>
-                            )}
+                            
                           </div>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

@@ -22,13 +22,33 @@ export type InstitucionAPI = {
   ind_inst_superior?: string | null
 }
 
-export async function obtenerInstituciones(page = 1): Promise<{
-    count: number
-    next: string | null
-    previous: string | null
-    results: InstitucionAPI[]
+export type FiltrosInstituciones = {
+  page?: number
+  search?: string
+  id_pais?: number | null
+  tipo_institucion?: string | null
+
+}
+
+export async function obtenerInstituciones(
+  filtros: FiltrosInstituciones = {}
+): Promise<{
+  count: number
+  next: string | null
+  previous: string | null
+  results: InstitucionAPI[]
 }> {
-  const url = `${API_BASE_URL}/api/v1/instituciones-c/?page=${page}`
+  const params = new URLSearchParams()
+
+  params.append('page', String(filtros.page ?? 1))
+
+  if (filtros.search) params.append('search', filtros.search)
+  if (filtros.id_pais) params.append('id_pais', String(filtros.id_pais))
+  if (filtros.tipo_institucion)
+    params.append('tipo_institucion', filtros.tipo_institucion)
+
+
+  const url = `${API_BASE_URL}/api/v1/instituciones-c/?${params.toString()}`
 
   console.log('CONSULTANDO API:', url)
 
@@ -41,10 +61,6 @@ export async function obtenerInstituciones(page = 1): Promise<{
   }
 
   const data = await response.json()
-
-  console.log('JSON RECIBIDO:', data)
-  console.log('ES ARRAY:', Array.isArray(data))
-  console.log('CANTIDAD:', Array.isArray(data) ? data.length : 0)
 
   return {
     results: Array.isArray(data)
