@@ -292,7 +292,6 @@ function EntidadAutocomplete({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
- 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!abierto && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
@@ -854,7 +853,8 @@ function NivelesAcordeon({
   )
 }
 
-// Lista
+const PAGE_SIZE = 10
+
 function ListaInstituciones({
   instituciones,
   institucionesAPI,
@@ -864,6 +864,7 @@ function ListaInstituciones({
   idioma,
   paginaActual,
   totalPaginas,
+  haySiguiente,
   onCambiarPagina,
   filtros,
   setFiltros,
@@ -876,23 +877,23 @@ function ListaInstituciones({
   idioma: 'es' | 'en'
   paginaActual: number
   totalPaginas: number
+  haySiguiente: boolean
   onCambiarPagina: (p: number) => void
   filtros: {
     search: string
     id_pais: number | null
     tipo_institucion: string | null
-
+    tipo_poder: string | null
   }
-  setFiltros: React.Dispatch<React.SetStateAction<{
-    search: string
-    id_pais: number | null
-    tipo_institucion: string | null
-
-  }>>
-
+  setFiltros: React.Dispatch<
+    React.SetStateAction<{
+      search: string
+      id_pais: number | null
+      tipo_institucion: string | null
+      tipo_poder: string | null
+    }>
+  >
 }) {
-  const [busqueda,] = useState('')
-
   const todas = useMemo(() => {
     const apiConvertidas: InstitucionGuardada[] = (institucionesAPI ?? []).map(
       (i) => ({
@@ -922,10 +923,12 @@ function ListaInstituciones({
   }, [instituciones, institucionesAPI])
 
   const filtradas = useMemo(() => {
-    const q = normalizar(busqueda)
+    const q = normalizar(filtros.search)
     if (!q) return todas
-    return todas.filter((i) => normalizar(i.nombreInstitucion).includes(q))
-  }, [busqueda, todas])
+    return todas.filter((i) =>
+      normalizar(i.nombreInstitucion).includes(q)
+    )
+  }, [filtros.search, todas])
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8">
@@ -962,74 +965,102 @@ function ListaInstituciones({
                 </h2>
               </div>
             </div>
+          </div>
 
-<div className="w-full grid grid-cols-1 md:grid-cols-4 gap-3">
-  <div>
-    <label className="text-xs font-medium text-slate-500 mb-1 block">
-      {idioma === 'es' ? 'Buscar' : 'Search'}
-    </label>
-    <input
-      type="text"
-      placeholder={t.buscar}
-      value={filtros.search}
-      onChange={(e) => {
-        setFiltros((prev) => ({ ...prev, search: e.target.value }))
-        onCambiarPagina(1)   
-      }}
-      className="input-style w-full"
-    />
-  </div>
+          <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">
+                {idioma === 'es' ? 'Buscar' : 'Search'}
+              </label>
+              <input
+                type="text"
+                placeholder={t.buscar}
+                value={filtros.search}
+                onChange={(e) => {
+                  setFiltros((prev) => ({
+                    ...prev,
+                    search: e.target.value,
+                  }))
+                }}
+                className="input-style w-full"
+              />
+            </div>
 
-  <div>
-    <label className="text-xs font-medium text-slate-500 mb-1 block">
-      {idioma === 'es' ? 'País' : 'Country'}
-    </label>
-    <select
-      value={filtros.id_pais ?? ''}
-      onChange={(e) => {
-        setFiltros((prev) => ({
-          ...prev,
-          id_pais: e.target.value ? Number(e.target.value) : null,
-        }))
-        onCambiarPagina(1)
-      }}
-      className="input-style w-full"
-    >
-      <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
-      <option value="143">México</option>
-      <option value="56">Otro</option>
-    </select>
-  </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">
+                {idioma === 'es' ? 'País' : 'Country'}
+              </label>
+              <select
+                value={filtros.id_pais ?? ''}
+                onChange={(e) => {
+                  setFiltros((prev) => ({
+                    ...prev,
+                    id_pais: e.target.value
+                      ? Number(e.target.value)
+                      : null,
+                  }))
+                  onCambiarPagina(1)
+                }}
+                className="input-style w-full"
+              >
+                <option value="">
+                  {idioma === 'es' ? 'Todos' : 'All'}
+                </option>
+                <option value="143">México</option>
+                <option value="56">Otro</option>
+              </select>
+            </div>
 
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">
+                {idioma === 'es' ? 'Tipo' : 'Type'}
+              </label>
+              <select
+                value={filtros.tipo_institucion ?? ''}
+                onChange={(e) => {
+                  setFiltros((prev) => ({
+                    ...prev,
+                    tipo_institucion: e.target.value || null,
+                  }))
+                  onCambiarPagina(1)
+                }}
+                className="input-style w-full"
+              >
+                <option value="">
+                  {idioma === 'es' ? 'Todos' : 'All'}
+                </option>
+                <option value="NACIONAL">
+                  {idioma === 'es' ? 'Nacional' : 'National'}
+                </option>
+                <option value="EXTRANJERA">
+                  {idioma === 'es' ? 'Extranjera' : 'Foreign'}
+                </option>
+              </select>
+            </div>
 
-  <div>
-    <label className="text-xs font-medium text-slate-500 mb-1 block">
-      {idioma === 'es' ? 'Tipo' : 'Type'}
-    </label>
-    <select
-      value={filtros.tipo_institucion ?? ''}
-      onChange={(e) => {
-        setFiltros((prev) => ({
-          ...prev,
-          tipo_institucion: e.target.value || null,
-        }))
-        onCambiarPagina(1)
-      }}
-      className="input-style w-full"
-    >
-      <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
-      <option value="NACIONAL">
-        {idioma === 'es' ? 'Nacional' : 'National'}
-      </option>
-      <option value="EXTRANJERA">
-        {idioma === 'es' ? 'Extranjera' : 'Foreign'}
-      </option>
-    </select>
-  </div>
-  <div>
-  </div>
-</div>
-
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">
+                {idioma === 'es' ? 'Poder' : 'Branch'}
+              </label>
+              <select
+                value={filtros.tipo_poder ?? ''}
+                onChange={(e) => {
+                  setFiltros((prev) => ({
+                    ...prev,
+                    tipo_poder: e.target.value || null,
+                  }))
+                  onCambiarPagina(1)
+                }}
+                className="input-style w-full"
+              >
+                <option value="">
+                  {idioma === 'es' ? 'Todos' : 'All'}
+                </option>
+                <option value="Estatal">Estatal</option>
+                <option value="Federal">Federal</option>
+                <option value="Municipal">Municipal</option>
+              </select>
+            </div>
           </div>
 
           {cargando && (
@@ -1048,7 +1079,12 @@ function ListaInstituciones({
 
           {filtradas.length === 0 ? (
             <div className="text-center py-12 text-slate-500 text-sm">
-              {todas.length === 0 ? t.sinRegistros : t.sinCoincidencias}
+              {filtros.search ||
+              filtros.id_pais ||
+              filtros.tipo_institucion ||
+              filtros.tipo_poder
+                ? t.sinCoincidencias
+                : t.sinRegistros}
             </div>
           ) : (
             <>
@@ -1095,7 +1131,9 @@ function ListaInstituciones({
                         <td className="px-3 py-2 text-slate-600">
                           {i.nombre}
                         </td>
-                        <td className="px-3 py-2 text-slate-600">{i.correo}</td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {i.correo}
+                        </td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
                           {i.fechaRegistro
                             ? new Date(i.fechaRegistro).toLocaleString(
@@ -1127,12 +1165,12 @@ function ListaInstituciones({
                 </button>
 
                 <span className="text-sm text-slate-500">
-                  Página {paginaActual} de {totalPaginas}
+                  Página {paginaActual} de {22567}
                 </span>
 
                 <button
                   type="button"
-                  disabled={paginaActual >= totalPaginas}
+                  disabled={!haySiguiente}
                   onClick={() => onCambiarPagina(paginaActual + 1)}
                   className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-md disabled:opacity-40"
                 >
@@ -1165,42 +1203,71 @@ function App() {
   )
   const [paginaActual, setPaginaActual] = useState(1)
   const [totalPaginas, setTotalPaginas] = useState(1)
+  const [totalRegistros, setTotalRegistros] = useState(0)
+  const [haySiguiente, setHaySiguiente] = useState(false)
+  const [busquedaDebounced, setBusquedaDebounced] = useState('')
 
   const [filtros, setFiltros] = useState({
-  search: '',
-  id_pais: null as number | null,
-  tipo_institucion: null as string | null,
+    search: '',
+    id_pais: null as number | null,
+    tipo_institucion: null as string | null,
+    tipo_poder: null as string | null,
+  })
 
-})
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setBusquedaDebounced(filtros.search)
+      setPaginaActual(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [filtros.search])
 
-useEffect(() => {
-  const cargarInstituciones = async () => {
-    try {
-      setCargandoInstituciones(true)
-      setErrorInstituciones(null)
+  useEffect(() => {
+    let cancelado = false
 
-      const data = await obtenerInstituciones({
-        page: paginaActual,
-        search: filtros.search,
-        id_pais: filtros.id_pais,
-        tipo_institucion: filtros.tipo_institucion,
+    const cargarInstituciones = async () => {
+      try {
+        setCargandoInstituciones(true)
+        setErrorInstituciones(null)
 
-      })
+        const data = await obtenerInstituciones({
+          page: paginaActual,
+          page_size: PAGE_SIZE,
+          search: busquedaDebounced,
+          id_pais: filtros.id_pais,
+          tipo_institucion: filtros.tipo_institucion,
+        })
 
-      setInstitucionesAPI(data.results)
-      setTotalPaginas(Math.ceil(data.count / 10))
-    } catch (error) {
-      console.error('Error al cargar instituciones:', error)
-      setErrorInstituciones(
-        error instanceof Error ? error.message : 'Error al cargar'
-      )
-    } finally {
-      setCargandoInstituciones(false)
+        if (cancelado) return
+
+        setInstitucionesAPI(data.results)
+        setTotalRegistros(data.count)
+        setTotalPaginas(Math.max(1, Math.ceil(data.count / PAGE_SIZE)))
+        setHaySiguiente(
+          Boolean(data.next) || data.results.length === PAGE_SIZE
+        )
+      } catch (error) {
+        if (cancelado) return
+        console.error('Error al cargar instituciones:', error)
+        setErrorInstituciones(
+          error instanceof Error ? error.message : 'Error al cargar'
+        )
+      } finally {
+        if (!cancelado) setCargandoInstituciones(false)
+      }
     }
-  }
-  cargarInstituciones()
-}, [paginaActual, filtros])
-  
+
+    cargarInstituciones()
+
+    return () => {
+      cancelado = true
+    }
+  }, [
+    paginaActual,
+    busquedaDebounced,
+    filtros.id_pais,
+    filtros.tipo_institucion,
+  ])
 
   useEffect(() => {
     if (form.tipoInstitucion === 'EXTRANJERA') {
@@ -1290,7 +1357,7 @@ useEffect(() => {
       <Header
         t={t}
         vista={vista}
-        totalRegistradas={instituciones.length + institucionesAPI.length}
+        totalRegistradas={instituciones.length + totalRegistros}
         onCambiarIdioma={() =>
           setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
         }
@@ -1303,19 +1370,20 @@ useEffect(() => {
         className="flex-1 w-full relative z-10 flex flex-col"
       >
         {vista === 'lista' ? (
-        <ListaInstituciones
-          instituciones={instituciones}
-          institucionesAPI={institucionesAPI}
-          cargando={cargandoInstituciones}
-          error={errorInstituciones}
-          t={t}
-          idioma={idioma}
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          onCambiarPagina={setPaginaActual}
-          filtros={filtros}
-          setFiltros={setFiltros}
-        />
+          <ListaInstituciones
+            instituciones={instituciones}
+            institucionesAPI={institucionesAPI}
+            cargando={cargandoInstituciones}
+            error={errorInstituciones}
+            t={t}
+            idioma={idioma}
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            haySiguiente={haySiguiente}
+            onCambiarPagina={setPaginaActual}
+            filtros={filtros}
+            setFiltros={setFiltros}
+          />
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1563,7 +1631,11 @@ useEffect(() => {
                             <span className="text-sm font-medium text-slate-700">
                               {t.poder}
                             </span>
-                            
+                            {form.poder.trim() && !poderAbierto && (
+                              <span className="text-xs text-slate-400 truncate max-w-50">
+                                — {form.poder}
+                              </span>
+                            )}
                           </div>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

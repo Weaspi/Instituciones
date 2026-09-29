@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.20:8000'
+const API_BASE_URL = 'http://172.16.11.24:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -24,6 +24,7 @@ export type InstitucionAPI = {
 
 export type FiltrosInstituciones = {
   page?: number
+  page_size?: number
   search?: string
   id_pais?: number | null
   tipo_institucion?: string | null
@@ -41,6 +42,7 @@ export async function obtenerInstituciones(
   const params = new URLSearchParams()
 
   params.append('page', String(filtros.page ?? 1))
+  params.append('page_size', String(filtros.page_size ?? 10))
 
   if (filtros.search) params.append('search', filtros.search)
   if (filtros.id_pais) params.append('id_pais', String(filtros.id_pais))
@@ -61,17 +63,18 @@ export async function obtenerInstituciones(
   }
 
   const data = await response.json()
+    console.log('RESPUESTA CRUDA:', data)
+    console.log('Es arreglo:', Array.isArray(data), '| llaves:', data && Object.keys(data))
 
-  return {
-    results: Array.isArray(data)
-      ? data
-      : Array.isArray(data?.results)
-        ? data.results
-        : [],
-    count: data.count || 0,
-    next: data.next || null,
-    previous: data.previous || null,
-  }
+    const results = Array.isArray(data) ? data : data?.results ?? data?.data ?? []
+    const count = data?.count ?? data?.total ?? results.length
+
+return {
+  results,
+  count,
+  next: data?.next ?? null,
+  previous: data?.previous ?? null,
+}
 }
 
 export async function crearInstitucion(data: {
