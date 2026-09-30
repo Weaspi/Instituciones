@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.24:8000'
+const API_BASE_URL = 'http://172.16.11.32:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -28,7 +28,6 @@ export type FiltrosInstituciones = {
   search?: string
   id_pais?: number | null
   tipo_institucion?: string | null
-
 }
 
 export async function obtenerInstituciones(
@@ -38,17 +37,22 @@ export async function obtenerInstituciones(
   next: string | null
   previous: string | null
   results: InstitucionAPI[]
+   totalPages: number
 }> {
   const params = new URLSearchParams()
 
   params.append('page', String(filtros.page ?? 1))
   params.append('page_size', String(filtros.page_size ?? 10))
+  params.append('ordering', '-id_institucion')
 
-  if (filtros.search) params.append('search', filtros.search)
-  if (filtros.id_pais) params.append('id_pais', String(filtros.id_pais))
+  if (filtros.search)
+    params.append('desc_institucion', filtros.search)
+
+  if (filtros.id_pais)
+    params.append('id_pais', String(filtros.id_pais))
+
   if (filtros.tipo_institucion)
     params.append('tipo_institucion', filtros.tipo_institucion)
-
 
   const url = `${API_BASE_URL}/api/v1/instituciones-c/?${params.toString()}`
 
@@ -63,18 +67,31 @@ export async function obtenerInstituciones(
   }
 
   const data = await response.json()
-    console.log('RESPUESTA CRUDA:', data)
-    console.log('Es arreglo:', Array.isArray(data), '| llaves:', data && Object.keys(data))
 
-    const results = Array.isArray(data) ? data : data?.results ?? data?.data ?? []
-    const count = data?.count ?? data?.total ?? results.length
+const totalHeader = response.headers.get('X-Total')
+  const totalPagesHeader = response.headers.get('X-Total-Pages')
 
-return {
-  results,
-  count,
-  next: data?.next ?? null,
-  previous: data?.previous ?? null,
-}
+  const results = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.results)
+      ? data.results
+      : []
+
+  const count = totalHeader
+    ? Number(totalHeader)
+    : data?.count ?? results.length
+
+  const totalPages = totalPagesHeader
+    ? Number(totalPagesHeader)
+    : Math.max(1, Math.ceil(count / (filtros.page_size ?? 10)))
+
+  return {
+    results,
+    count,
+    totalPages,
+    next: data?.next ?? null,
+    previous: data?.previous ?? null,
+  }
 }
 
 export async function crearInstitucion(data: {

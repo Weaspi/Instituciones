@@ -757,7 +757,7 @@ function NivelesAcordeon({
           </span>
           <span className="text-sm font-medium text-slate-700">{label}</span>
           {tieneValor && !activo && (
-            <span className="text-xs text-slate-400 truncate max-w-50">
+            <span className="text-xs text-slate-400 truncate max-w-[200px]">
               — {form[nivelKey]}
             </span>
           )}
@@ -856,7 +856,6 @@ function NivelesAcordeon({
 const PAGE_SIZE = 10
 
 function ListaInstituciones({
-  instituciones,
   institucionesAPI,
   cargando,
   error,
@@ -869,7 +868,6 @@ function ListaInstituciones({
   filtros,
   setFiltros,
 }: {
-  instituciones: InstitucionGuardada[]
   institucionesAPI: InstitucionAPI[]
   cargando: boolean
   error: string | null
@@ -894,41 +892,29 @@ function ListaInstituciones({
     }>
   >
 }) {
-  const todas = useMemo(() => {
-    const apiConvertidas: InstitucionGuardada[] = (institucionesAPI ?? []).map(
-      (i) => ({
-        _id: `api-${i.id_institucion}`,
-        fechaRegistro: '',
-        nombreInstitucion: i.desc_institucion,
-        tipoInstitucion: i.tipo_institucion ?? '',
-        tipoInstitucionNivelUno: '',
-        tipoInstitucionNivelDos: '',
-        tipoInstitucionNivelTres: '',
-        pais: String(i.id_pais ?? ''),
-        entidad: String(i.id_entidad ?? ''),
-        municipio: i.id_municipio ? String(i.id_municipio) : '',
-        localidad: i.id_localidad ? String(i.id_localidad) : '',
-        razonSocial: i.id_institucion_padre
-          ? String(i.id_institucion_padre)
-          : '',
-        privada: i.ind_empresa ?? '',
-        poder: i.tipo_poder ?? '',
-        nombre: '',
-        correo: '',
-        observaciones: i.origen_informacion ?? '',
-      })
-    )
-
-    return [...instituciones, ...apiConvertidas]
-  }, [instituciones, institucionesAPI])
-
-  const filtradas = useMemo(() => {
-    const q = normalizar(filtros.search)
-    if (!q) return todas
-    return todas.filter((i) =>
-      normalizar(i.nombreInstitucion).includes(q)
-    )
-  }, [filtros.search, todas])
+  const filtradas: InstitucionGuardada[] = useMemo(() => {
+    return (institucionesAPI ?? []).map((i) => ({
+      _id: `api-${i.id_institucion}`,
+      fechaRegistro: '',
+      nombreInstitucion: i.desc_institucion,
+      tipoInstitucion: i.tipo_institucion ?? '',
+      tipoInstitucionNivelUno: '',
+      tipoInstitucionNivelDos: '',
+      tipoInstitucionNivelTres: '',
+      pais: String(i.id_pais ?? ''),
+      entidad: String(i.id_entidad ?? ''),
+      municipio: i.id_municipio ? String(i.id_municipio) : '',
+      localidad: i.id_localidad ? String(i.id_localidad) : '',
+      razonSocial: i.id_institucion_padre
+        ? String(i.id_institucion_padre)
+        : '',
+      privada: i.ind_empresa ?? '',
+      poder: i.tipo_poder ?? '',
+      nombre: '',
+      correo: '',
+      observaciones: i.origen_informacion ?? '',
+    }))
+  }, [institucionesAPI])
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8">
@@ -1006,7 +992,6 @@ function ListaInstituciones({
                 <option value="">
                   {idioma === 'es' ? 'Todos' : 'All'}
                 </option>
-                <option value="143">México</option>
                 <option value="56">Otro</option>
               </select>
             </div>
@@ -1165,7 +1150,7 @@ function ListaInstituciones({
                 </button>
 
                 <span className="text-sm text-slate-500">
-                  Página {paginaActual} de {22567}
+                  Página {paginaActual} de {totalPaginas}
                 </span>
 
                 <button
@@ -1190,7 +1175,6 @@ type Vista = 'alta' | 'lista'
 function App() {
   const [vista, setVista] = useState<Vista>('alta')
   const [form, setForm] = useState<InstitucionForm>(FORM_INICIAL)
-  const [instituciones, setInstituciones] = useState<InstitucionGuardada[]>([])
   const [enviado, setEnviado] = useState(false)
   const [poderAbierto, setPoderAbierto] = useState(false)
   const [idioma, setIdioma] = useState<Idioma>('es')
@@ -1206,6 +1190,7 @@ function App() {
   const [totalRegistros, setTotalRegistros] = useState(0)
   const [haySiguiente, setHaySiguiente] = useState(false)
   const [busquedaDebounced, setBusquedaDebounced] = useState('')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const [filtros, setFiltros] = useState({
     search: '',
@@ -1242,7 +1227,7 @@ function App() {
 
         setInstitucionesAPI(data.results)
         setTotalRegistros(data.count)
-        setTotalPaginas(Math.max(1, Math.ceil(data.count / PAGE_SIZE)))
+        setTotalPaginas(data.totalPages) 
         setHaySiguiente(
           Boolean(data.next) || data.results.length === PAGE_SIZE
         )
@@ -1267,6 +1252,7 @@ function App() {
     busquedaDebounced,
     filtros.id_pais,
     filtros.tipo_institucion,
+    refreshTrigger,
   ])
 
   useEffect(() => {
@@ -1333,12 +1319,16 @@ function App() {
       const nuevaAPI = await crearInstitucion(payload)
       console.log('Institución guardada en API:', nuevaAPI)
 
-      const nuevaLocal: InstitucionGuardada = {
-        ...formFinal,
-        _id: crypto.randomUUID(),
-        fechaRegistro: new Date().toISOString(),
-      }
-      setInstituciones((prev) => [nuevaLocal, ...prev])
+      setPaginaActual(1)
+      setBusquedaDebounced('')
+      setFiltros({
+        search: '',
+        id_pais: null,
+        tipo_institucion: null,
+        tipo_poder: null,
+      })
+      setRefreshTrigger((prev) => prev + 1)
+      setVista('lista')
 
       setForm(FORM_INICIAL)
     } catch (error) {
@@ -1357,7 +1347,7 @@ function App() {
       <Header
         t={t}
         vista={vista}
-        totalRegistradas={instituciones.length + totalRegistros}
+        totalRegistradas={totalRegistros}
         onCambiarIdioma={() =>
           setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
         }
@@ -1371,7 +1361,6 @@ function App() {
       >
         {vista === 'lista' ? (
           <ListaInstituciones
-            instituciones={instituciones}
             institucionesAPI={institucionesAPI}
             cargando={cargandoInstituciones}
             error={errorInstituciones}
@@ -1632,7 +1621,7 @@ function App() {
                               {t.poder}
                             </span>
                             {form.poder.trim() && !poderAbierto && (
-                              <span className="text-xs text-slate-400 truncate max-w-50">
+                              <span className="text-xs text-slate-400 truncate max-w-[200px]">
                                 — {form.poder}
                               </span>
                             )}
