@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.32:8000'
+const API_BASE_URL = 'http://172.16.11.21:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -37,7 +37,7 @@ export async function obtenerInstituciones(
   next: string | null
   previous: string | null
   results: InstitucionAPI[]
-   totalPages: number
+  totalPages: number
 }> {
   const params = new URLSearchParams()
 
@@ -68,7 +68,7 @@ export async function obtenerInstituciones(
 
   const data = await response.json()
 
-const totalHeader = response.headers.get('X-Total')
+  const totalHeader = response.headers.get('X-Total')
   const totalPagesHeader = response.headers.get('X-Total-Pages')
 
   const results = Array.isArray(data)
@@ -122,4 +122,22 @@ export async function crearInstitucion(data: {
   }
 
   return response.json()
+}
+
+export async function eliminarInstitucion(id: number) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/instituciones-c/${id}/`,
+    {
+      method: 'DELETE',
+    }
+  )
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(
+      `Error al eliminar institución: ${response.status} - ${errorText}`
+    )
+  }
+
+  return true
 }

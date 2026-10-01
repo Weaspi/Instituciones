@@ -12,6 +12,7 @@ import Header from './components/Header'
 import {
   obtenerInstituciones,
   crearInstitucion,
+  eliminarInstitucion,
   type InstitucionAPI,
 } from './services/instituciones'
 import Footer from './components/Footer'
@@ -37,6 +38,7 @@ type InstitucionForm = {
 type InstitucionGuardada = InstitucionForm & {
   _id: string
   fechaRegistro: string
+  idNumerico: number  
 }
 
 const FORM_INICIAL: InstitucionForm = {
@@ -867,6 +869,7 @@ function ListaInstituciones({
   onCambiarPagina,
   filtros,
   setFiltros,
+  onEliminar, 
 }: {
   institucionesAPI: InstitucionAPI[]
   cargando: boolean
@@ -891,10 +894,12 @@ function ListaInstituciones({
       tipo_poder: string | null
     }>
   >
+  onEliminar: (id: number) => void 
 }) {
   const filtradas: InstitucionGuardada[] = useMemo(() => {
     return (institucionesAPI ?? []).map((i) => ({
       _id: `api-${i.id_institucion}`,
+      idNumerico: i.id_institucion,  
       fechaRegistro: '',
       nombreInstitucion: i.desc_institucion,
       tipoInstitucion: i.tipo_institucion ?? '',
@@ -1023,29 +1028,7 @@ function ListaInstituciones({
               </select>
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">
-                {idioma === 'es' ? 'Poder' : 'Branch'}
-              </label>
-              <select
-                value={filtros.tipo_poder ?? ''}
-                onChange={(e) => {
-                  setFiltros((prev) => ({
-                    ...prev,
-                    tipo_poder: e.target.value || null,
-                  }))
-                  onCambiarPagina(1)
-                }}
-                className="input-style w-full"
-              >
-                <option value="">
-                  {idioma === 'es' ? 'Todos' : 'All'}
-                </option>
-                <option value="Estatal">Estatal</option>
-                <option value="Federal">Federal</option>
-                <option value="Municipal">Municipal</option>
-              </select>
-            </div>
+
           </div>
 
           {cargando && (
@@ -1098,6 +1081,9 @@ function ListaInstituciones({
                       <th className="text-left font-medium px-3 py-2">
                         {t.colFechaRegistro}
                       </th>
+                      <th className="text-left font-medium px-3 py-2">
+                        {idioma === 'es' ? 'Acciones' : 'Actions'}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -1132,6 +1118,31 @@ function ListaInstituciones({
                                 }
                               )
                             : t.guion}
+                        </td>
+                        <td className="px-3 py-2">
+                          <button
+                            type="button"
+                            onClick={() => onEliminar(i.idNumerico)}
+                            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            {idioma === 'es' ? 'Eliminar' : 'Delete'}
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1342,6 +1353,32 @@ function App() {
     }
   }
 
+const handleEliminar = async (id: number) => {
+  const confirmar = window.confirm(
+    idioma === 'es'
+      ? '¿Estás seguro de que quieres eliminar esta institución?'
+      : 'Are you sure you want to delete this institution?'
+  )
+
+  if (!confirmar) return
+
+  try {
+    await eliminarInstitucion(id)
+    console.log('Institución eliminada:', id)
+
+    setRefreshTrigger((prev) => prev + 1)
+  } catch (error) {
+    console.error('Error al eliminar:', error)
+    alert(
+      error instanceof Error
+        ? error.message
+        : idioma === 'es'
+          ? 'Error al eliminar'
+          : 'Error deleting'
+    )
+  }
+}
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
       <Header
@@ -1372,6 +1409,7 @@ function App() {
             onCambiarPagina={setPaginaActual}
             filtros={filtros}
             setFiltros={setFiltros}
+            onEliminar={handleEliminar} 
           />
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
