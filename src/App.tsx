@@ -12,6 +12,7 @@ import Header from './components/Header'
 import {
   obtenerInstituciones,
   crearInstitucion,
+  actualizarInstitucion,
   eliminarInstitucion,
   type InstitucionAPI,
 } from './services/instituciones'
@@ -693,6 +694,7 @@ function PoderConOpciones({
             className="text-xs font-medium text-slate-600"
           >
             {t.especificaPoder}
+            
           </label>
           <input
             id="otro-poder"
@@ -759,7 +761,7 @@ function NivelesAcordeon({
           </span>
           <span className="text-sm font-medium text-slate-700">{label}</span>
           {tieneValor && !activo && (
-            <span className="text-xs text-slate-400 truncate max-w-[200px]">
+            <span className="text-xs text-slate-400 truncate max-w-50">
               — {form[nivelKey]}
             </span>
           )}
@@ -788,7 +790,8 @@ function NivelesAcordeon({
     <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50/50">
       <div className="px-4 py-3 border-b border-slate-200">
         <h3 className="text-sm font-semibold text-[#13322e]">
-          {t.nivelesTitulo}
+          {t.nivelesTitulo}{' '}
+          <span className="text-[#9d2449]">*</span>
         </h3>
         <p className="text-xs text-slate-500 mt-0.5">{t.nivelesSubtitulo}</p>
       </div>
@@ -869,7 +872,7 @@ function ListaInstituciones({
   onCambiarPagina,
   filtros,
   setFiltros,
-  onEliminar, 
+  onEditar, 
 }: {
   institucionesAPI: InstitucionAPI[]
   cargando: boolean
@@ -894,7 +897,7 @@ function ListaInstituciones({
       tipo_poder: string | null
     }>
   >
-  onEliminar: (id: number) => void 
+  onEditar: (institucion: InstitucionAPI) => void
 }) {
   const filtradas: InstitucionGuardada[] = useMemo(() => {
     return (institucionesAPI ?? []).map((i) => ({
@@ -1122,8 +1125,13 @@ function ListaInstituciones({
                         <td className="px-3 py-2">
                           <button
                             type="button"
-                            onClick={() => onEliminar(i.idNumerico)}
-                            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
+                            onClick={() => {
+                              const original = institucionesAPI.find(
+                                (x) => x.id_institucion === i.idNumerico
+                              )
+                              if (original) onEditar(original)
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -1136,12 +1144,10 @@ function ListaInstituciones({
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             >
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                              <path d="M3 6h18" />
-                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                             </svg>
-                            {idioma === 'es' ? 'Eliminar' : 'Delete'}
+                            {idioma === 'es' ? 'Editar' : 'Edit'}
                           </button>
                         </td>
                       </tr>
@@ -1182,6 +1188,193 @@ function ListaInstituciones({
 }
 
 type Vista = 'alta' | 'lista'
+function ModalEditar({
+  institucion,
+  t,
+  idioma,
+  onCerrar,
+  onGuardar,
+  onEliminar,
+}: {
+  institucion: InstitucionAPI
+  t: Traduccion
+  idioma: 'es' | 'en'
+  onCerrar: () => void
+  onGuardar: (form: InstitucionForm) => void
+  onEliminar: () => void
+}) {
+  const [form, setForm] = useState<InstitucionForm>({
+    nombreInstitucion: institucion.desc_institucion,
+    tipoInstitucion: institucion.tipo_institucion ?? '',
+    tipoInstitucionNivelUno: '',
+    tipoInstitucionNivelDos: '',
+    tipoInstitucionNivelTres: '',
+    pais: String(institucion.id_pais ?? ''),
+    entidad: String(institucion.id_entidad ?? ''),
+    municipio: String(institucion.id_municipio ?? ''),
+    localidad: String(institucion.id_localidad ?? ''),
+    razonSocial: '',
+    privada: institucion.ind_empresa === 'S' ? 'SI' : 'NO',
+    poder: institucion.tipo_poder ?? '',
+    nombre: '',
+    correo: '',
+    observaciones: institucion.origen_informacion ?? '',
+  })
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-200 p-4">
+          <h2 className="text-lg font-semibold text-[#13322e]">
+            {idioma === 'es' ? 'Editar institución' : 'Edit institution'}
+          </h2>
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.nombreInstitucion}
+            </label>
+            <input
+              type="text"
+              name="nombreInstitucion"
+              value={form.nombreInstitucion}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.tipoInstitucion}
+            </label>
+            <select
+              name="tipoInstitucion"
+              value={form.tipoInstitucion}
+              onChange={handleChange}
+              className="input-style w-full"
+            >
+              <option value="">{t.seleccionaOpcion}</option>
+              <option value="NACIONAL">{t.opcionNacional}</option>
+              <option value="EXTRANJERA">{t.opcionExtranjera}</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.pais}
+            </label>
+            <input
+              type="text"
+              name="pais"
+              value={form.pais}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.privada}
+            </label>
+            <select
+              name="privada"
+              value={form.privada}
+              onChange={handleChange}
+              className="input-style w-full"
+            >
+              <option value="">{t.seleccionaOpcion}</option>
+              <option value="SI">{t.opcionSi}</option>
+              <option value="NO">{t.opcionNo}</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.poder}
+            </label>
+            <input
+              type="text"
+              name="poder"
+              value={form.poder}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.observaciones}
+            </label>
+            <textarea
+              name="observaciones"
+              value={form.observaciones}
+              onChange={handleChange}
+              rows={3}
+              className="input-style w-full"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-slate-200 p-4 gap-3">
+          <button
+            type="button"
+            onClick={onEliminar}
+            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            {idioma === 'es' ? 'Eliminar' : 'Delete'}
+          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onCerrar}
+              className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              {t.cancelar}
+            </button>
+            <button
+              type="button"
+              onClick={() => onGuardar(form)}
+              className="rounded-md bg-[#13322e] px-4 py-2 text-sm font-medium text-white hover:bg-[#0d2320]"
+            >
+              {idioma === 'es' ? 'Guardar cambios' : 'Save changes'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function App() {
   const [vista, setVista] = useState<Vista>('alta')
@@ -1189,6 +1382,7 @@ function App() {
   const [enviado, setEnviado] = useState(false)
   const [poderAbierto, setPoderAbierto] = useState(false)
   const [idioma, setIdioma] = useState<Idioma>('es')
+  const [editando, setEditando] = useState<InstitucionAPI | null>(null)
   const t = TRADUCCIONES[idioma]
 
   const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
@@ -1305,21 +1499,18 @@ function App() {
       cve_peoplesoft: '',
       tipo_institucion: formFinal.tipoInstitucion || '',
       id_tipo_institucion: formFinal.tipoInstitucion === 'NACIONAL' ? 1 : 2,
-
       id_pais: Number(formFinal.pais) || 1,
       id_entidad: Number(formFinal.entidad) || 1,
       id_entidad_ubicacion: 1,
       id_municipio: Number(formFinal.municipio) || 1,
       id_localidad: Number(formFinal.localidad) || 1,
-      id_institucion_padre: Number(formFinal.razonSocial) || 1,
-
+      id_institucion_padre: null,
       id_tipo_inst_nivel_uno: 1,
       id_tipo_inst_nivel_dos: 1,
       id_tipo_inst_nivel_tres: 1,
-
-      ind_empresa: formFinal.privada === 'SI' ? 'S' : 'N',
-
-      origen_informacion: formFinal.observaciones || '',
+      ind_empresa: formFinal.privada === 'SI' ? '1' : '0',
+      origen_informacion: null, 
+      observaciones: formFinal.observaciones || '',
       tipo_poder: formFinal.poder || '',
       ind_inst_superior: 'N',
     }
@@ -1353,31 +1544,66 @@ function App() {
     }
   }
 
-const handleEliminar = async (id: number) => {
+const handleEditar = (institucion: InstitucionAPI) => {
+  setEditando(institucion)
+}
+
+const handleCerrarModal = () => {
+  setEditando(null)
+}
+
+const handleGuardarEdicion = async (formEdicion: InstitucionForm) => {
+  if (!editando) return
+
+  try {
+    const payload = {
+      desc_institucion: formEdicion.nombreInstitucion,
+      id_tipo_institucion: formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2,
+      id_pais: Number(formEdicion.pais) || 1,
+      id_entidad: Number(formEdicion.entidad) || 1,
+      id_municipio: Number(formEdicion.municipio) || 1,
+      id_localidad: Number(formEdicion.localidad) || 1,
+      id_institucion_padre: null,
+      ind_empresa: formEdicion.privada === 'SI' ? 'S' : 'N',
+      tipo_poder: formEdicion.poder || '',
+      origen_informacion: formEdicion.observaciones || '',
+    }
+
+    await actualizarInstitucion(editando.id_institucion, payload)
+    console.log('Institución actualizada')
+
+    setEditando(null)
+    setRefreshTrigger((prev) => prev + 1)
+  } catch (error) {
+    console.error('Error al actualizar:', error)
+    alert(
+      error instanceof Error ? error.message : 'Error al actualizar'
+    )
+  }
+}
+
+const handleEliminarDesdeModal = async () => {
+  if (!editando) return
+
   const confirmar = window.confirm(
     idioma === 'es'
       ? '¿Estás seguro de que quieres eliminar esta institución?'
       : 'Are you sure you want to delete this institution?'
   )
-
   if (!confirmar) return
 
   try {
-    await eliminarInstitucion(id)
-    console.log('Institución eliminada:', id)
+    await eliminarInstitucion(editando.id_institucion)
+    console.log('Institución eliminada')
 
+    setEditando(null)
     setRefreshTrigger((prev) => prev + 1)
   } catch (error) {
     console.error('Error al eliminar:', error)
-    alert(
-      error instanceof Error
-        ? error.message
-        : idioma === 'es'
-          ? 'Error al eliminar'
-          : 'Error deleting'
-    )
+    alert(error instanceof Error ? error.message : 'Error al eliminar')
   }
 }
+
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
@@ -1409,7 +1635,7 @@ const handleEliminar = async (id: number) => {
             onCambiarPagina={setPaginaActual}
             filtros={filtros}
             setFiltros={setFiltros}
-            onEliminar={handleEliminar} 
+            onEditar={handleEditar}
           />
         ) : (
           <div className="w-full max-w-4xl mx-auto px-4 py-8">
@@ -1521,7 +1747,8 @@ const handleEliminar = async (id: number) => {
                         htmlFor="entidad"
                         className="text-sm font-medium text-slate-700"
                       >
-                        {t.entidad}
+                        {t.entidad}{' '}
+                          <span className="text-slate-400">{t.opcional}</span>
                       </label>
                       {bloqueado ? (
                         <input
@@ -1659,7 +1886,7 @@ const handleEliminar = async (id: number) => {
                               {t.poder}
                             </span>
                             {form.poder.trim() && !poderAbierto && (
-                              <span className="text-xs text-slate-400 truncate max-w-[200px]">
+                              <span className="text-xs text-slate-400 truncate max-w-50">
                                 — {form.poder}
                               </span>
                             )}
@@ -1738,6 +1965,7 @@ const handleEliminar = async (id: number) => {
                         className="text-sm font-medium text-slate-700"
                       >
                         {t.observaciones}
+                        <span className="text-slate-400">{t.opcional}</span>
                       </label>
                       <textarea
                         id="observaciones"
@@ -1792,6 +2020,16 @@ const handleEliminar = async (id: number) => {
         )}
       </main>
 
+{editando && (
+  <ModalEditar
+    institucion={editando}
+    t={t}
+    idioma={idioma}
+    onCerrar={handleCerrarModal}
+    onGuardar={handleGuardarEdicion}
+    onEliminar={handleEliminarDesdeModal}
+  />
+)}
       <Footer t={t} />
     </div>
   )

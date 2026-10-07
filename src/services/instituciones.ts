@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.21:8000'
+const API_BASE_URL = 'http://172.16.11.19:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -140,4 +140,38 @@ export async function eliminarInstitucion(id: number) {
   }
 
   return true
+}
+
+export async function actualizarInstitucion(
+  id: number,
+  data: {
+    desc_institucion: string
+    id_tipo_institucion: number
+    id_pais: number
+    id_entidad: number | null
+    id_municipio: number | null
+    id_localidad: number | null
+    id_institucion_padre: number | null
+    ind_empresa: string
+    tipo_poder: string | null
+    origen_informacion: string | null
+  }
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/instituciones-c/${id}/`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }
+  )
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(
+      `Error al actualizar institución: ${response.status} - ${errorText}`
+    )
+  }
+
+  return response.json()
 }
