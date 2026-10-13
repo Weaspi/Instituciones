@@ -15,6 +15,7 @@ import {
   actualizarInstitucion,
   eliminarInstitucion,
   type InstitucionAPI,
+  type CambiosInstitucion,
 } from './services/instituciones'
 import Footer from './components/Footer'
 
@@ -34,6 +35,7 @@ type InstitucionForm = {
   nombre: string
   correo: string
   observaciones: string
+  origenInformacion: string
 }
 
 type InstitucionGuardada = InstitucionForm & {
@@ -58,6 +60,7 @@ const FORM_INICIAL: InstitucionForm = {
   nombre: '',
   correo: '',
   observaciones: '',
+  origenInformacion: '',
 }
 
 const normalizar = (s: string) =>
@@ -110,7 +113,7 @@ const TRADUCCIONES = {
     menu: 'Menú',
     menuTramites: 'Trámites',
     menuGobierno: 'Gobierno',
-
+    origenInformacion: 'Origen de información',
     nivelesTitulo: 'Tipo de institución por nivel',
     nivelesSubtitulo: 'Selecciona 1 de las 3 opciones   ',
     nivelUno: 'Tipo institución nivel uno',
@@ -162,6 +165,7 @@ const TRADUCCIONES = {
     opcionesNivelUno: ['Pública', 'Privada', 'Extranjera', 'Otro'],
     opcionesNivelDos: ['Estatal', 'Federal', 'Empresa', 'Otro'],
     opcionesPoder: ['Estatal', 'Federal', 'Municipal', 'Otro'],
+    opcionesOrigen: ['SACI', 'MIGRACION', 'BECAS', 'CONACYT', 'CORREO', 'INEGI', 'CLUES', 'Otro'],
 
     footerTituloGobmx: '¿Qué es gob.mx?',
     footerLeerMas: 'Leer más',
@@ -203,7 +207,7 @@ const TRADUCCIONES = {
     menu: 'Menu',
     menuTramites: 'Procedures',
     menuGobierno: 'Government',
-
+    origenInformacion: 'Information source',
     nivelesTitulo: 'Institution type by level',
     nivelesSubtitulo: 'Select 1 of the 3 options.',
     nivelUno: 'Institution type level one',
@@ -255,6 +259,7 @@ const TRADUCCIONES = {
     opcionesNivelUno: ['Public', 'Private', 'Foreign', 'Other'],
     opcionesNivelDos: ['State', 'Federal', 'Company', 'Other'],
     opcionesPoder: ['State', 'Federal', 'Municipal', 'Other'],
+    opcionesOrigen: ['SACI', 'MIGRATION', 'SCHOLARSHIPS', 'CONACYT', 'EMAIL', 'INEGI', 'CLUES', 'Other'],
 
     footerTituloGobmx: 'What is gob.mx?',
     footerLeerMas: 'Read more',
@@ -585,6 +590,7 @@ function NivelConOpciones({
     </div>
   )
 }
+
 
 function PoderConOpciones({
   form,
@@ -920,12 +926,13 @@ function ListaInstituciones({
       poder: i.tipo_poder ?? '',
       nombre: '',
       correo: '',
-      observaciones: i.origen_informacion ?? '',
+      observaciones: '',
+      origenInformacion: i.origen_informacion ?? '',
     }))
   }, [institucionesAPI])
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full max-w-[1600px] mx-auto px-4 py-8">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-6 md:p-8">
           <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
@@ -1030,8 +1037,6 @@ function ListaInstituciones({
                 </option>
               </select>
             </div>
-
-
           </div>
 
           {cargando && (
@@ -1099,9 +1104,7 @@ function ListaInstituciones({
                         <td className="px-3 py-2 text-slate-600">
                           {i.entidad || t.guion}
                         </td>
-                        <td className="px-3 py-2 text-slate-600">
-                          {i.tipoInstitucionNivelUno || t.guion}
-                        </td>
+                        
                         <td className="px-3 py-2 text-slate-600">
                           {i.nombre}
                         </td>
@@ -1206,19 +1209,20 @@ function ModalEditar({
   const [form, setForm] = useState<InstitucionForm>({
     nombreInstitucion: institucion.desc_institucion,
     tipoInstitucion: institucion.tipo_institucion ?? '',
-    tipoInstitucionNivelUno: '',
-    tipoInstitucionNivelDos: '',
-    tipoInstitucionNivelTres: '',
+    tipoInstitucionNivelUno: String(institucion.id_tipo_inst_nivel_uno ?? ''),
+    tipoInstitucionNivelDos: String(institucion.id_tipo_inst_nivel_dos ?? ''),
+    tipoInstitucionNivelTres: String(institucion.id_tipo_inst_nivel_tres ?? ''),
     pais: String(institucion.id_pais ?? ''),
     entidad: String(institucion.id_entidad ?? ''),
     municipio: String(institucion.id_municipio ?? ''),
     localidad: String(institucion.id_localidad ?? ''),
-    razonSocial: '',
+    razonSocial: String(institucion.id_institucion_padre ?? ''),
     privada: institucion.ind_empresa === 'S' ? 'SI' : 'NO',
     poder: institucion.tipo_poder ?? '',
     nombre: '',
     correo: '',
-    observaciones: institucion.origen_informacion ?? '',
+    observaciones:'',
+    origenInformacion: institucion.origen_informacion ?? '',
   })
 
   const handleChange = (
@@ -1231,7 +1235,7 @@ function ModalEditar({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 p-4">
+        <div className="flex items-center justify-between border-b border-slate-200 p-4 sticky top-0 bg-white z-10">
           <h2 className="text-lg font-semibold text-[#13322e]">
             {idioma === 'es' ? 'Editar institución' : 'Edit institution'}
           </h2>
@@ -1274,6 +1278,51 @@ function ModalEditar({
             </select>
           </div>
 
+          {/* 🆕 Tipo institución nivel 1 */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.nivelUno}
+            </label>
+            <input
+              type="text"
+              name="tipoInstitucionNivelUno"
+              value={form.tipoInstitucionNivelUno}
+              onChange={handleChange}
+              placeholder="Ej. Educación superior"
+              className="input-style w-full"
+            />
+          </div>
+
+          {/* 🆕 Tipo institución nivel 2 */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.nivelDos}
+            </label>
+            <input
+              type="text"
+              name="tipoInstitucionNivelDos"
+              value={form.tipoInstitucionNivelDos}
+              onChange={handleChange}
+              placeholder="Ej. Universidad"
+              className="input-style w-full"
+            />
+          </div>
+
+          {/* 🆕 Tipo institución nivel 3 */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.nivelTres}
+            </label>
+            <input
+              type="text"
+              name="tipoInstitucionNivelTres"
+              value={form.tipoInstitucionNivelTres}
+              onChange={handleChange}
+              placeholder="Ej. Pública, Privada, etc."
+              className="input-style w-full"
+            />
+          </div>
+
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.pais}
@@ -1282,6 +1331,62 @@ function ModalEditar({
               type="text"
               name="pais"
               value={form.pais}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          {/* 🆕 Entidad */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.entidad}
+            </label>
+            <input
+              type="text"
+              name="entidad"
+              value={form.entidad}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          {/* 🆕 Municipio */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.municipio}
+            </label>
+            <input
+              type="text"
+              name="municipio"
+              value={form.municipio}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          {/* 🆕 Localidad */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.localidad}
+            </label>
+            <input
+              type="text"
+              name="localidad"
+              value={form.localidad}
+              onChange={handleChange}
+              className="input-style w-full"
+            />
+          </div>
+
+          {/* 🆕 Institución Padre */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.institucionPadre}
+            </label>
+            <input
+              type="text"
+              name="razonSocial"
+              value={form.razonSocial}
               onChange={handleChange}
               className="input-style w-full"
             />
@@ -1307,13 +1412,39 @@ function ModalEditar({
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.poder}
             </label>
-            <input
-              type="text"
+            <select
               name="poder"
               value={form.poder}
               onChange={handleChange}
               className="input-style w-full"
-            />
+            >
+              <option value="">{t.seleccionaOpcion}</option>
+              {t.opcionesPoder.map((op) => (
+                <option key={op} value={op}>
+                  {op}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 🆕 Origen de información */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 block mb-1">
+              {t.origenInformacion}
+            </label>
+            <select
+              name="origenInformacion"
+              value={form.origenInformacion}
+              onChange={handleChange}
+              className="input-style w-full"
+            >
+              <option value="">{t.seleccionaOpcion}</option>
+              {t.opcionesOrigen.map((op) => (
+                <option key={op} value={op}>
+                  {op}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -1330,7 +1461,7 @@ function ModalEditar({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-200 p-4 gap-3">
+        <div className="flex items-center justify-between border-t border-slate-200 p-4 gap-3 sticky bottom-0 bg-white">
           <button
             type="button"
             onClick={onEliminar}
@@ -1380,7 +1511,6 @@ function App() {
   const [vista, setVista] = useState<Vista>('alta')
   const [form, setForm] = useState<InstitucionForm>(FORM_INICIAL)
   const [enviado, setEnviado] = useState(false)
-  const [poderAbierto, setPoderAbierto] = useState(false)
   const [idioma, setIdioma] = useState<Idioma>('es')
   const [editando, setEditando] = useState<InstitucionAPI | null>(null)
   const t = TRADUCCIONES[idioma]
@@ -1494,22 +1624,21 @@ function App() {
 
     const payload = {
       desc_institucion: formFinal.nombreInstitucion,
-
-      cve_institucion: `INST-${Date.now()}`,
+      cve_institucion: `INST-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
       cve_peoplesoft: '',
       tipo_institucion: formFinal.tipoInstitucion || '',
       id_tipo_institucion: formFinal.tipoInstitucion === 'NACIONAL' ? 1 : 2,
       id_pais: Number(formFinal.pais) || 1,
-      id_entidad: Number(formFinal.entidad) || 1,
-      id_entidad_ubicacion: 1,
-      id_municipio: Number(formFinal.municipio) || 1,
-      id_localidad: Number(formFinal.localidad) || 1,
-      id_institucion_padre: null,
-      id_tipo_inst_nivel_uno: 1,
-      id_tipo_inst_nivel_dos: 1,
-      id_tipo_inst_nivel_tres: 1,
+      id_entidad: Number(formFinal.entidad) || null,
+      id_entidad_ubicacion: null,
+      id_municipio: Number(formFinal.municipio) || null,
+      id_localidad: Number(formFinal.localidad) || null,
+      id_institucion_padre: formFinal.razonSocial ? Number(formFinal.razonSocial) : null,
+      id_tipo_inst_nivel_uno: formFinal.tipoInstitucionNivelUno ? 1 : null,   
+      id_tipo_inst_nivel_dos: formFinal.tipoInstitucionNivelDos ? 1 : null,   
+      id_tipo_inst_nivel_tres: formFinal.tipoInstitucionNivelTres ? 1 : null, 
       ind_empresa: formFinal.privada === 'SI' ? '1' : '0',
-      origen_informacion: null, 
+      origen_informacion: formFinal.origenInformacion || null, 
       observaciones: formFinal.observaciones || '',
       tipo_poder: formFinal.poder || '',
       ind_inst_superior: 'N',
@@ -1555,30 +1684,67 @@ const handleCerrarModal = () => {
 const handleGuardarEdicion = async (formEdicion: InstitucionForm) => {
   if (!editando) return
 
-  try {
-    const payload = {
-      desc_institucion: formEdicion.nombreInstitucion,
-      id_tipo_institucion: formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2,
-      id_pais: Number(formEdicion.pais) || 1,
-      id_entidad: Number(formEdicion.entidad) || 1,
-      id_municipio: Number(formEdicion.municipio) || 1,
-      id_localidad: Number(formEdicion.localidad) || 1,
-      id_institucion_padre: null,
-      ind_empresa: formEdicion.privada === 'SI' ? 'S' : 'N',
-      tipo_poder: formEdicion.poder || '',
-      origen_informacion: formEdicion.observaciones || '',
+  const cambios: CambiosInstitucion = {}
+
+  if (formEdicion.nombreInstitucion !== editando.desc_institucion) {
+    cambios.desc_institucion = formEdicion.nombreInstitucion
+  }
+
+  if (formEdicion.tipoInstitucion !== (editando.tipo_institucion ?? '')) {
+    cambios.tipo_institucion = formEdicion.tipoInstitucion
+    cambios.id_tipo_institucion =
+      formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2
+  }
+
+  if (formEdicion.pais !== String(editando.id_pais ?? '')) {
+    const idPais = Number(formEdicion.pais)
+    if (formEdicion.pais.trim() === '' || Number.isNaN(idPais)) {
+      alert(
+        idioma === 'es'
+          ? 'El país debe ser el número (id) del catálogo.'
+          : 'Country must be the numeric catalog id.'
+      )
+      return
     }
+    cambios.id_pais = idPais
+  }
 
-    await actualizarInstitucion(editando.id_institucion, payload)
-    console.log('Institución actualizada')
+  const eraPrivada =
+    editando.ind_empresa === '1' || editando.ind_empresa === 'S'
+  if ((formEdicion.privada === 'SI') !== eraPrivada) {
+    cambios.ind_empresa = formEdicion.privada === 'SI' ? '1' : '0'
+  }
 
+  if (formEdicion.poder !== (editando.tipo_poder ?? '')) {
+    cambios.tipo_poder = formEdicion.poder || null
+  }
+
+if (
+  formEdicion.origenInformacion !==
+  (editando.origen_informacion ?? '')
+) {
+  cambios.origen_informacion = formEdicion.origenInformacion || null
+}
+
+  if (Object.keys(cambios).length === 0) {
+    setEditando(null)
+    return
+  }
+
+  try {
+    await actualizarInstitucion(editando.id_institucion, cambios)
+    setInstitucionesAPI((prev) =>
+      prev.map((i) =>
+        i.id_institucion === editando.id_institucion
+          ? { ...i, ...cambios }
+          : i
+      )
+    )
     setEditando(null)
     setRefreshTrigger((prev) => prev + 1)
   } catch (error) {
     console.error('Error al actualizar:', error)
-    alert(
-      error instanceof Error ? error.message : 'Error al actualizar'
-    )
+    alert(error instanceof Error ? error.message : 'Error al actualizar')
   }
 }
 
@@ -1724,9 +1890,20 @@ const handleEliminarDesdeModal = async () => {
                         </option>
                       </select>
                     </div>
+                    
+
+
+
+
+
+
+
+
+
+
+
 
                     <NivelesAcordeon form={form} setForm={setForm} t={t} />
-
                     <div className="space-y-1.5">
                       <label
                         htmlFor="pais"
@@ -1865,59 +2042,6 @@ const handleEliminarDesdeModal = async () => {
                       </select>
                     </div>
 
-                    <div className="space-y-1.5 md:col-span-2">
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/50">
-                        <button
-                          type="button"
-                          onClick={() => setPoderAbierto((v) => !v)}
-                          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-white transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                                form.poder.trim()
-                                  ? 'bg-[#13322e] text-white'
-                                  : 'bg-slate-200 text-slate-600'
-                              }`}
-                            >
-                              {form.poder.trim() ? '✓' : '·'}
-                            </span>
-                            <span className="text-sm font-medium text-slate-700">
-                              {t.poder}
-                            </span>
-                            {form.poder.trim() && !poderAbierto && (
-                              <span className="text-xs text-slate-400 truncate max-w-50">
-                                — {form.poder}
-                              </span>
-                            )}
-                          </div>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className={`text-slate-400 transition-transform ${
-                              poderAbierto ? 'rotate-180' : ''
-                            }`}
-                          >
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
-                        </button>
-
-                        {poderAbierto && (
-                          <PoderConOpciones
-                            form={form}
-                            setForm={setForm}
-                            t={t}
-                          />
-                        )}
-                      </div>
-                    </div>
 
                     <div className="space-y-1.5">
                       <label
@@ -1977,6 +2101,114 @@ const handleEliminarDesdeModal = async () => {
                         className="input-style"
                       />
                     </div>
+
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="poder"
+                          className="text-sm font-medium text-slate-700"
+                        >
+                          {t.poder}{' '}
+                          <span className="text-[#9d2449]">*</span>
+                        </label>
+                        <select
+                          id="poder"
+                          name="poder"
+
+                      value={
+                        t.opcionesPoder.includes(form.poder)
+                          ? form.poder
+                          : form.poder
+                            ? 'Otro'
+                            : ''
+                      }
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    >
+                      <option value="">{t.seleccionaOpcion}</option>
+                      {t.opcionesPoder.map((op) => (
+                        <option key={op} value={op}>
+                          {op}
+                        </option>
+                      ))}
+                    </select>
+
+                    {(form.poder === 'Otro' ||
+                      (!t.opcionesPoder.includes(form.poder) &&
+                        form.poder !== '')) && (
+                      <input
+                        type="text"
+                        name="poder"
+                        placeholder={
+                          idioma === 'es'
+                            ? 'Escribe el poder'
+                            : 'Write the power'
+                        }
+                        value={
+                          t.opcionesPoder.includes(form.poder)
+                            ? ''
+                            : form.poder
+                        }
+                        onChange={handleChange}
+                        autoFocus
+                        className="input-style w-full mt-2"
+                      />
+                    )}
+                  </div>
+
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="origenInformacion"
+                          className="text-sm font-medium text-slate-700"
+                        >
+                          {t.origenInformacion}{' '}
+                          <span className="text-[#9d2449]">*</span>
+                        </label>
+                        <select
+                          id="origenInformacion"
+                          name="origenInformacion"
+
+                      value={
+                        t.opcionesOrigen.includes(form.origenInformacion)
+                          ? form.origenInformacion
+                          : form.origenInformacion
+                            ? 'Otro'
+                            : ''
+                      }
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    >
+                      <option value="">{t.seleccionaOpcion}</option>
+                      {t.opcionesOrigen.map((op) => (
+                        <option key={op} value={op}>
+                          {op}
+                        </option>
+                      ))}
+                    </select>
+
+                    {(form.origenInformacion === 'Otro' ||
+                      (!t.opcionesOrigen.includes(form.origenInformacion) &&
+                        form.origenInformacion !== '')) && (
+                      <input
+                        type="text"
+                        name="origenInformacion"
+                        placeholder={
+                          idioma === 'es'
+                            ? 'Escribe el origen de información'
+                            : 'Write the information source'
+                        }
+                        value={
+                          t.opcionesOrigen.includes(form.origenInformacion)
+                            ? ''
+                            : form.origenInformacion
+                        }
+                        onChange={handleChange}
+                        autoFocus
+                        className="input-style w-full mt-2"
+                      />
+                    )}
+                  </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-2">

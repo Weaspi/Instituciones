@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.19:8000'
+const API_BASE_URL = 'http://172.16.11.10:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -30,6 +30,20 @@ export type FiltrosInstituciones = {
   tipo_institucion?: string | null
 }
 
+export type CambiosInstitucion = Partial<{
+  desc_institucion: string
+  tipo_institucion: string
+  id_tipo_institucion: number
+  id_pais: number
+  id_entidad: number | null
+  id_municipio: number | null
+  id_localidad: number | null
+  id_institucion_padre: number | null
+  ind_empresa: string
+  tipo_poder: string | null
+  origen_informacion: string | null
+}>
+
 export async function obtenerInstituciones(
   filtros: FiltrosInstituciones = {}
 ): Promise<{
@@ -45,11 +59,9 @@ export async function obtenerInstituciones(
   params.append('page_size', String(filtros.page_size ?? 10))
   params.append('ordering', '-id_institucion')
 
-  if (filtros.search)
-    params.append('desc_institucion', filtros.search)
+  if (filtros.search) params.append('desc_institucion', filtros.search)
 
-  if (filtros.id_pais)
-    params.append('id_pais', String(filtros.id_pais))
+  if (filtros.id_pais) params.append('id_pais', String(filtros.id_pais))
 
   if (filtros.tipo_institucion)
     params.append('tipo_institucion', filtros.tipo_institucion)
@@ -126,7 +138,7 @@ export async function crearInstitucion(data: {
 
 export async function eliminarInstitucion(id: number) {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/instituciones-c/${id}/`,
+    `${API_BASE_URL}/api/v1/instituciones-c/${id}`,
     {
       method: 'DELETE',
     }
@@ -144,25 +156,14 @@ export async function eliminarInstitucion(id: number) {
 
 export async function actualizarInstitucion(
   id: number,
-  data: {
-    desc_institucion: string
-    id_tipo_institucion: number
-    id_pais: number
-    id_entidad: number | null
-    id_municipio: number | null
-    id_localidad: number | null
-    id_institucion_padre: number | null
-    ind_empresa: string
-    tipo_poder: string | null
-    origen_informacion: string | null
-  }
+  cambios: CambiosInstitucion
 ) {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/instituciones-c/${id}/`,
+    `${API_BASE_URL}/api/v1/instituciones-c/${id}`,
     {
-      method: 'PUT',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(cambios),
     }
   )
 
