@@ -1,4 +1,9 @@
 ﻿import {
+  TRADUCCIONES,
+  type Idioma,
+  type Traduccion,
+} from './i18n/traducciones'
+import {
   useState,
   ChangeEvent,
   FormEvent,
@@ -8,7 +13,6 @@
 } from 'react'
 import { PAISES } from './data/paises'
 import { ESTADOS_MEXICO } from './data/estados'
-import Header from './components/Header'
 import {
   obtenerInstituciones,
   crearInstitucion,
@@ -17,7 +21,7 @@ import {
   type InstitucionAPI,
   type CambiosInstitucion,
 } from './services/instituciones'
-import Footer from './components/Footer'
+import Layout from './components/Layout'
 
 type InstitucionForm = {
   nombreInstitucion: string
@@ -41,7 +45,7 @@ type InstitucionForm = {
 type InstitucionGuardada = InstitucionForm & {
   _id: string
   fechaRegistro: string
-  idNumerico: number  
+  idNumerico: number
 }
 
 const FORM_INICIAL: InstitucionForm = {
@@ -76,200 +80,22 @@ const normalizarMayus = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
 
-type Idioma = 'es' | 'en'
 
-const TRADUCCIONES = {
-  es: {
-    appTitulo: 'Instituciones',
-    navAlta: 'Alta',
-    navRegistradas: 'Registradas',
-    btnIdioma: 'ES',
-
-    registroTitulo: 'Registro Institucional',
-    altaTitulo: 'Alta de Institución',
-    altaSubtitulo:
-      'Datos mínimos para identificar y validar a la institución responsable dentro del catálogo.',
-
-    nombreInstitucion: 'Nombre de institución',
-    tipoInstitucion: 'Tipo de institución',
-    seleccionaOpcion: 'Selecciona una opción',
-    opcionNacional: 'NACIONAL',
-    opcionExtranjera: 'EXTRANJERA',
-    pais: 'País',
-    entidad: 'Entidad',
-    municipio: 'Municipio',
-    localidad: 'Localidad',
-    institucionPadre: 'Institución Padre',
-    privada: 'Privada',
-    opcionSi: 'SI',
-    opcionNo: 'NO',
-    poder: 'Poder',
-    nombre: 'Nombre',
-    correo: 'Correo',
-    observaciones: 'Observaciones',
-    opcional: '(Opcional)',
-    irContenido: 'Ir al contenido principal',
-    altEscudo: 'Ir a la página de inicio del Gobierno de México',
-    menu: 'Menú',
-    menuTramites: 'Trámites',
-    menuGobierno: 'Gobierno',
-    origenInformacion: 'Origen de información',
-    nivelesTitulo: 'Tipo de institución por nivel',
-    nivelesSubtitulo: 'Selecciona 1 de las 3 opciones   ',
-    nivelUno: 'Tipo institución nivel uno',
-    nivelDos: 'Tipo institución nivel dos',
-    nivelTres: 'Tipo institución nivel tres',
-    tablaTipo: 'Tipo',
-    tablaSeleccion: 'Selección',
-    tablaPoder: 'Poder',
-    especificaTipo: 'Especifica el tipo',
-    especificaPoder: 'Especifica el poder',
-    phOtroTipo: 'Escribe el tipo',
-    phOtroPoder: 'Ej. Organismo autónomo',
-    guardadoEn: 'Este valor se guardará en',
-
-    cancelar: 'Cancelar',
-    guardar: 'Guardar institución',
-    obligatorios: 'Los campos marcados con',
-    obligatoriosSufijo: 'son obligatorios.',
-    registradaOk: 'Institución registrada correctamente.',
-    verRegistradas: 'Ver registradas',
-
-    catalogo: 'Catálogo',
-    listaTitulo: 'Instituciones registradas',
-    buscar: 'Buscar por nombre...',
-    sinRegistros: 'Aún no hay instituciones registradas.',
-    sinCoincidencias: 'No se encontraron coincidencias.',
-    colNombre: 'Nombre',
-    colPais: 'País',
-    colEntidad: 'Entidad',
-    colTipo: 'Tipo',
-    colResponsable: 'Responsable',
-    colCorreo: 'Correo',
-    colFechaRegistro: 'Registrado el',
-    guion: '—',
-
-    footer: 'Sistema de Registro Institucional',
-
-    phNombreInstitucion: 'Nombre completo de la institución',
-    phEntidad: 'Ej. Ciudad de México',
-    phMunicipio: 'Ej. Benito Juárez',
-    phLocalidad: 'Ej. Lomas de la Selva',
-    phInstitucionPadre: 'Ej. Universidad Nacional Autónoma de México',
-    phDondeSeCargo: 'Ej. Sistema de información, Oficina de control',
-    phCodigo: 'Ej. RFC, clave única, etc.',
-    phNombre: 'Nombre de la persona de contacto/responsable',
-    phCorreo: 'contacto@institucion.mx',
-    phObservaciones: 'Notas u observaciones adicionales',
-
-    opcionesNivelUno: ['Pública', 'Privada', 'Extranjera', 'Otro'],
-    opcionesNivelDos: ['Estatal', 'Federal', 'Empresa', 'Otro'],
-    opcionesPoder: ['Estatal', 'Federal', 'Municipal', 'Otro'],
-    opcionesOrigen: ['SACI', 'MIGRACION', 'BECAS', 'CONACYT', 'CORREO', 'INEGI', 'CLUES', 'Otro'],
-
-    footerTituloGobmx: '¿Qué es gob.mx?',
-    footerLeerMas: 'Leer más',
-    footerEnlaces: 'Enlaces',
-    footerSiguenos: 'Síguenos en',
-    footerDenuncia: 'Denuncia contra servidores públicos',
-  },
-  en: {
-    appTitulo: 'Institutions',
-    navAlta: 'Register',
-    navRegistradas: 'Registered',
-    btnIdioma: 'EN',
-
-    registroTitulo: 'Institutional Registry',
-    altaTitulo: 'Register Institution',
-    altaSubtitulo:
-      'Minimum data to identify and validate the responsible institution in the catalog.',
-
-    nombreInstitucion: 'Institution name',
-    tipoInstitucion: 'Institution type',
-    seleccionaOpcion: 'Select an option',
-    opcionNacional: 'NATIONAL',
-    opcionExtranjera: 'FOREIGN',
-    pais: 'Country',
-    entidad: 'State',
-    municipio: 'Municipality',
-    localidad: 'Locality',
-    institucionPadre: 'Parent Institution',
-    privada: 'Private',
-    opcionSi: 'YES',
-    opcionNo: 'NO',
-    poder: 'Branch',
-    nombre: 'Name',
-    correo: 'Email',
-    observaciones: 'Notes',
-    opcional: '(Optional)',
-    irContenido: 'Go to main content',
-    altEscudo: 'Go to the Government of Mexico home page',
-    menu: 'Menu',
-    menuTramites: 'Procedures',
-    menuGobierno: 'Government',
-    origenInformacion: 'Information source',
-    nivelesTitulo: 'Institution type by level',
-    nivelesSubtitulo: 'Select 1 of the 3 options.',
-    nivelUno: 'Institution type level one',
-    nivelDos: 'Institution type level two',
-    nivelTres: 'Institution type level three',
-    tablaTipo: 'Type',
-    tablaSeleccion: 'Selection',
-    tablaPoder: 'Branch',
-    especificaTipo: 'Specify the type',
-    especificaPoder: 'Specify the branch',
-    phOtroTipo: 'Write the type',
-    phOtroPoder: 'E.g. Autonomous body',
-    guardadoEn: 'This value will be saved in',
-
-    cancelar: 'Cancel',
-    guardar: 'Save institution',
-    obligatorios: 'Fields marked with',
-    obligatoriosSufijo: 'are required.',
-    registradaOk: 'Institution successfully registered.',
-    verRegistradas: 'View registered',
-
-    catalogo: 'Catalog',
-    listaTitulo: 'Registered institutions',
-    buscar: 'Search by name...',
-    sinRegistros: 'No institutions registered yet.',
-    sinCoincidencias: 'No matches found.',
-    colNombre: 'Name',
-    colPais: 'Country',
-    colEntidad: 'State',
-    colTipo: 'Type',
-    colResponsable: 'Contact',
-    colCorreo: 'Email',
-    colFechaRegistro: 'Registered on',
-    guion: '—',
-
-    footer: 'Institutional Registry System',
-
-    phNombreInstitucion: 'Full institution name',
-    phEntidad: 'E.g. Mexico City',
-    phMunicipio: 'E.g. Benito Juárez',
-    phLocalidad: 'E.g. Lomas de la Selva',
-    phInstitucionPadre: 'E.g. National University',
-    phDondeSeCargo: 'E.g. Information system, Control office',
-    phCodigo: 'E.g. RFC, unique key, etc.',
-    phNombre: 'Contact/responsible person name',
-    phCorreo: 'contact@institution.mx',
-    phObservaciones: 'Additional notes or observations',
-
-    opcionesNivelUno: ['Public', 'Private', 'Foreign', 'Other'],
-    opcionesNivelDos: ['State', 'Federal', 'Company', 'Other'],
-    opcionesPoder: ['State', 'Federal', 'Municipal', 'Other'],
-    opcionesOrigen: ['SACI', 'MIGRATION', 'SCHOLARSHIPS', 'CONACYT', 'EMAIL', 'INEGI', 'CLUES', 'Other'],
-
-    footerTituloGobmx: 'What is gob.mx?',
-    footerLeerMas: 'Read more',
-    footerEnlaces: 'Links',
-    footerSiguenos: 'Follow us',
-    footerDenuncia: 'Report public officials',
-  },
+const obtenerIdPais = (nombre: string): number | null => {
+  if (!nombre) return null
+  const index = PAISES.findIndex(
+    (p) => normalizar(p) === normalizar(nombre)
+  )
+  return index >= 0 ? index + 1 : null
 }
 
-type Traduccion = typeof TRADUCCIONES['es']
+const obtenerIdEntidad = (nombre: string): number | null => {
+  if (!nombre) return null
+  const index = ESTADOS_MEXICO.findIndex(
+    (p) => normalizar(p) === normalizar(nombre)
+  )
+  return index >= 0 ? index + 1 : null
+}
 
 function EntidadAutocomplete({
   value,
@@ -591,135 +417,6 @@ function NivelConOpciones({
   )
 }
 
-
-function PoderConOpciones({
-  form,
-  setForm,
-  t,
-}: {
-  form: InstitucionForm
-  setForm: React.Dispatch<React.SetStateAction<InstitucionForm>>
-  t: Traduccion
-}) {
-  const valorActual = form.poder
-  const otra = t === TRADUCCIONES.en ? 'Other' : 'Otro'
-
-  const opcionInicial = t.opcionesPoder.includes(valorActual)
-    ? valorActual
-    : valorActual
-      ? otra
-      : ''
-
-  const [opcion, setOpcion] = useState<string>(opcionInicial)
-  const [otroTexto, setOtroTexto] = useState(
-    opcionInicial === otra ? valorActual : ''
-  )
-
-  const aplicar = (op: string, textoOtro: string) => {
-    const valorFinal = op === otra ? textoOtro : op
-    setForm((prev) => ({ ...prev, poder: valorFinal }))
-  }
-
-  const handleOpcionClick = (op: string) => {
-    setOpcion(op)
-    if (op === otra) {
-      aplicar(otra, otroTexto)
-    } else {
-      setOtroTexto('')
-      aplicar(op, '')
-    }
-  }
-
-  const handleOtroChange = (texto: string) => {
-    setOtroTexto(texto)
-    aplicar(otra, texto)
-  }
-
-  return (
-    <div className="px-4 pb-4 space-y-3">
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="text-left font-medium px-3 py-2">
-                {t.tablaPoder}
-              </th>
-              <th className="text-left font-medium px-3 py-2 w-24">
-                {t.tablaSeleccion}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {t.opcionesPoder.map((op) => {
-              const activa = opcion === op
-              return (
-                <tr
-                  key={op}
-                  onClick={() => handleOpcionClick(op)}
-                  className={`cursor-pointer transition-colors ${
-                    activa ? 'bg-[#13322e]/5' : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <td className="px-3 py-2 text-slate-700">{op}</td>
-                  <td className="px-3 py-2">
-                    <span
-                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full border-2 ${
-                        activa
-                          ? 'border-[#13322e] bg-[#13322e]'
-                          : 'border-slate-300'
-                      }`}
-                    >
-                      {activa && (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="white"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {opcion === otra && (
-        <div className="space-y-1.5">
-          <label
-            htmlFor="otro-poder"
-            className="text-xs font-medium text-slate-600"
-          >
-            {t.especificaPoder}
-            
-          </label>
-          <input
-            id="otro-poder"
-            type="text"
-            placeholder={t.phOtroPoder}
-            value={otroTexto}
-            onChange={(e) => handleOtroChange(e.target.value)}
-            autoFocus
-            className="input-style w-full"
-          />
-          <p className="text-xs text-slate-400">
-            {t.guardadoEn} <code>poder</code>.
-          </p>
-        </div>
-      )}
-    </div>
-  )
-}
-
 type NivelKey =
   | 'tipoInstitucionNivelUno'
   | 'tipoInstitucionNivelDos'
@@ -796,8 +493,7 @@ function NivelesAcordeon({
     <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50/50">
       <div className="px-4 py-3 border-b border-slate-200">
         <h3 className="text-sm font-semibold text-[#13322e]">
-          {t.nivelesTitulo}{' '}
-          <span className="text-[#9d2449]">*</span>
+          {t.nivelesTitulo} <span className="text-[#9d2449]">*</span>
         </h3>
         <p className="text-xs text-slate-500 mt-0.5">{t.nivelesSubtitulo}</p>
       </div>
@@ -878,7 +574,7 @@ function ListaInstituciones({
   onCambiarPagina,
   filtros,
   setFiltros,
-  onEditar, 
+  onEditar,
 }: {
   institucionesAPI: InstitucionAPI[]
   cargando: boolean
@@ -908,17 +604,21 @@ function ListaInstituciones({
   const filtradas: InstitucionGuardada[] = useMemo(() => {
     return (institucionesAPI ?? []).map((i) => ({
       _id: `api-${i.id_institucion}`,
-      idNumerico: i.id_institucion,  
+      idNumerico: i.id_institucion,
       fechaRegistro: '',
+
       nombreInstitucion: i.desc_institucion,
-      tipoInstitucion: i.tipo_institucion ?? '',
-      tipoInstitucionNivelUno: '',
-      tipoInstitucionNivelDos: '',
-      tipoInstitucionNivelTres: '',
-      pais: String(i.id_pais ?? ''),
-      entidad: String(i.id_entidad ?? ''),
-      municipio: i.id_municipio ? String(i.id_municipio) : '',
-      localidad: i.id_localidad ? String(i.id_localidad) : '',
+      tipoInstitucion: i.tipo_institucion_nombre ?? '',
+
+      tipoInstitucionNivelUno: i.nivel_uno_nombre ?? '',
+      tipoInstitucionNivelDos: i.nivel_dos_nombre ?? '',
+      tipoInstitucionNivelTres: i.nivel_tres_nombre ?? '',
+
+      pais: i.pais_nombre ?? '',
+      entidad: i.entidad_nombre ?? '',
+      municipio: i.municipio_nombre ?? '',
+      localidad: i.localidad_nombre ?? '',
+
       razonSocial: i.id_institucion_padre
         ? String(i.id_institucion_padre)
         : '',
@@ -936,27 +636,7 @@ function ListaInstituciones({
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-6 md:p-8">
           <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#13322e] text-white">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M8 6h13" />
-                  <path d="M8 12h13" />
-                  <path d="M8 18h13" />
-                  <path d="M3 6h.01" />
-                  <path d="M3 12h.01" />
-                  <path d="M3 18h.01" />
-                </svg>
-              </span>
+            <div className="flex items-center gap-3">     
               <div>
                 <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
                   {t.catalogo}
@@ -1004,9 +684,7 @@ function ListaInstituciones({
                 }}
                 className="input-style w-full"
               >
-                <option value="">
-                  {idioma === 'es' ? 'Todos' : 'All'}
-                </option>
+                <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
                 <option value="56">Otro</option>
               </select>
             </div>
@@ -1026,9 +704,7 @@ function ListaInstituciones({
                 }}
                 className="input-style w-full"
               >
-                <option value="">
-                  {idioma === 'es' ? 'Todos' : 'All'}
-                </option>
+                <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
                 <option value="NACIONAL">
                   {idioma === 'es' ? 'Nacional' : 'National'}
                 </option>
@@ -1062,6 +738,17 @@ function ListaInstituciones({
                 ? t.sinCoincidencias
                 : t.sinRegistros}
             </div>
+
+
+
+
+
+
+
+
+
+
+
           ) : (
             <>
               <div className="overflow-x-auto rounded-md border border-slate-200">
@@ -1081,15 +768,6 @@ function ListaInstituciones({
                         {t.colTipo}
                       </th>
                       <th className="text-left font-medium px-3 py-2">
-                        {t.colResponsable}
-                      </th>
-                      <th className="text-left font-medium px-3 py-2">
-                        {t.colCorreo}
-                      </th>
-                      <th className="text-left font-medium px-3 py-2">
-                        {t.colFechaRegistro}
-                      </th>
-                      <th className="text-left font-medium px-3 py-2">
                         {idioma === 'es' ? 'Acciones' : 'Actions'}
                       </th>
                     </tr>
@@ -1104,27 +782,15 @@ function ListaInstituciones({
                         <td className="px-3 py-2 text-slate-600">
                           {i.entidad || t.guion}
                         </td>
-                        
+                        <td className="px-3 py-2 text-slate-600">
+                          {i.tipoInstitucionNivelUno || t.guion}
+                        </td>
                         <td className="px-3 py-2 text-slate-600">
                           {i.nombre}
                         </td>
                         <td className="px-3 py-2 text-slate-600">
                           {i.correo}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
-                          {i.fechaRegistro
-                            ? new Date(i.fechaRegistro).toLocaleString(
-                                idioma === 'es' ? 'es-MX' : 'en-US',
-                                {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                }
-                              )
-                            : t.guion}
-                        </td>
+                        </td>                      
                         <td className="px-3 py-2">
                           <button
                             type="button"
@@ -1136,20 +802,7 @@ function ListaInstituciones({
                             }}
                             className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M12 20h9" />
-                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                            </svg>
+                            
                             {idioma === 'es' ? 'Editar' : 'Edit'}
                           </button>
                         </td>
@@ -1158,6 +811,17 @@ function ListaInstituciones({
                   </tbody>
                 </table>
               </div>
+
+
+
+
+
+
+
+
+
+
+
 
               <div className="flex items-center justify-between mt-4">
                 <button
@@ -1191,6 +855,7 @@ function ListaInstituciones({
 }
 
 type Vista = 'alta' | 'lista'
+
 function ModalEditar({
   institucion,
   t,
@@ -1209,19 +874,26 @@ function ModalEditar({
   const [form, setForm] = useState<InstitucionForm>({
     nombreInstitucion: institucion.desc_institucion,
     tipoInstitucion: institucion.tipo_institucion ?? '',
-    tipoInstitucionNivelUno: String(institucion.id_tipo_inst_nivel_uno ?? ''),
-    tipoInstitucionNivelDos: String(institucion.id_tipo_inst_nivel_dos ?? ''),
-    tipoInstitucionNivelTres: String(institucion.id_tipo_inst_nivel_tres ?? ''),
-    pais: String(institucion.id_pais ?? ''),
-    entidad: String(institucion.id_entidad ?? ''),
-    municipio: String(institucion.id_municipio ?? ''),
-    localidad: String(institucion.id_localidad ?? ''),
+
+    tipoInstitucionNivelUno: institucion.nivel_uno_nombre ?? '',
+    tipoInstitucionNivelDos: institucion.nivel_dos_nombre ?? '',
+    tipoInstitucionNivelTres: institucion.nivel_tres_nombre ?? '',
+
+    pais: institucion.pais_nombre ?? '',
+    entidad: institucion.entidad_nombre ?? '',
+    municipio: institucion.municipio_nombre ?? '',
+    localidad: institucion.localidad_nombre ?? '',
+
     razonSocial: String(institucion.id_institucion_padre ?? ''),
-    privada: institucion.ind_empresa === 'S' ? 'SI' : 'NO',
+
+    privada:
+      institucion.ind_empresa === '1' || institucion.ind_empresa === 'S'
+        ? 'SI'
+        : 'NO',
     poder: institucion.tipo_poder ?? '',
     nombre: '',
     correo: '',
-    observaciones:'',
+    observaciones: '',
     origenInformacion: institucion.origen_informacion ?? '',
   })
 
@@ -1278,7 +950,6 @@ function ModalEditar({
             </select>
           </div>
 
-          {/* 🆕 Tipo institución nivel 1 */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.nivelUno}
@@ -1293,7 +964,6 @@ function ModalEditar({
             />
           </div>
 
-          {/* 🆕 Tipo institución nivel 2 */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.nivelDos}
@@ -1308,7 +978,6 @@ function ModalEditar({
             />
           </div>
 
-          {/* 🆕 Tipo institución nivel 3 */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.nivelTres}
@@ -1336,7 +1005,6 @@ function ModalEditar({
             />
           </div>
 
-          {/* 🆕 Entidad */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.entidad}
@@ -1350,7 +1018,6 @@ function ModalEditar({
             />
           </div>
 
-          {/* 🆕 Municipio */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.municipio}
@@ -1364,7 +1031,6 @@ function ModalEditar({
             />
           </div>
 
-          {/* 🆕 Localidad */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.localidad}
@@ -1378,7 +1044,6 @@ function ModalEditar({
             />
           </div>
 
-          {/* 🆕 Institución Padre */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.institucionPadre}
@@ -1427,7 +1092,6 @@ function ModalEditar({
             </select>
           </div>
 
-          {/* 🆕 Origen de información */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">
               {t.origenInformacion}
@@ -1467,21 +1131,7 @@ function ModalEditar({
             onClick={onEliminar}
             className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
+               
             {idioma === 'es' ? 'Eliminar' : 'Delete'}
           </button>
 
@@ -1562,7 +1212,7 @@ function App() {
 
         setInstitucionesAPI(data.results)
         setTotalRegistros(data.count)
-        setTotalPaginas(data.totalPages) 
+        setTotalPaginas(data.totalPages)
         setHaySiguiente(
           Boolean(data.next) || data.results.length === PAGE_SIZE
         )
@@ -1613,7 +1263,12 @@ function App() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const CAMPOS_EXCLUIDOS = ['correo']
+    const CAMPOS_EXCLUIDOS = [
+      'correo',
+      'tipoInstitucionNivelUno',
+      'tipoInstitucionNivelDos',
+      'tipoInstitucionNivelTres',
+    ]
     const formFinal = Object.fromEntries(
       Object.entries(form).map(([key, value]) => {
         if (typeof value !== 'string') return [key, value]
@@ -1622,23 +1277,31 @@ function App() {
       })
     ) as InstitucionForm
 
+
+    const idPais = obtenerIdPais(formFinal.pais) ?? 1
+
     const payload = {
       desc_institucion: formFinal.nombreInstitucion,
-      cve_institucion: `INST-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
+      cve_institucion: `INST-${new Date()
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, '')}`,
       cve_peoplesoft: '',
       tipo_institucion: formFinal.tipoInstitucion || '',
       id_tipo_institucion: formFinal.tipoInstitucion === 'NACIONAL' ? 1 : 2,
-      id_pais: Number(formFinal.pais) || 1,
-      id_entidad: Number(formFinal.entidad) || null,
+      id_pais: idPais,
       id_entidad_ubicacion: null,
+      id_entidad: Number(formFinal.entidad) || null,
       id_municipio: Number(formFinal.municipio) || null,
       id_localidad: Number(formFinal.localidad) || null,
-      id_institucion_padre: formFinal.razonSocial ? Number(formFinal.razonSocial) : null,
-      id_tipo_inst_nivel_uno: formFinal.tipoInstitucionNivelUno ? 1 : null,   
-      id_tipo_inst_nivel_dos: formFinal.tipoInstitucionNivelDos ? 1 : null,   
-      id_tipo_inst_nivel_tres: formFinal.tipoInstitucionNivelTres ? 1 : null, 
+      id_institucion_padre: formFinal.razonSocial
+        ? Number(formFinal.razonSocial)
+        : null,
+      id_tipo_inst_nivel_uno: formFinal.tipoInstitucionNivelUno ? 1 : null,
+      id_tipo_inst_nivel_dos: formFinal.tipoInstitucionNivelDos ? 1 : null,
+      id_tipo_inst_nivel_tres: formFinal.tipoInstitucionNivelTres ? 1 : null,
       ind_empresa: formFinal.privada === 'SI' ? '1' : '0',
-      origen_informacion: formFinal.origenInformacion || null, 
+      origen_informacion: formFinal.origenInformacion || null,
       observaciones: formFinal.observaciones || '',
       tipo_poder: formFinal.poder || '',
       ind_inst_superior: 'N',
@@ -1673,447 +1336,431 @@ function App() {
     }
   }
 
-const handleEditar = (institucion: InstitucionAPI) => {
-  setEditando(institucion)
-}
-
-const handleCerrarModal = () => {
-  setEditando(null)
-}
-
-const handleGuardarEdicion = async (formEdicion: InstitucionForm) => {
-  if (!editando) return
-
-  const cambios: CambiosInstitucion = {}
-
-  if (formEdicion.nombreInstitucion !== editando.desc_institucion) {
-    cambios.desc_institucion = formEdicion.nombreInstitucion
+  const handleEditar = (institucion: InstitucionAPI) => {
+    setEditando(institucion)
   }
 
-  if (formEdicion.tipoInstitucion !== (editando.tipo_institucion ?? '')) {
-    cambios.tipo_institucion = formEdicion.tipoInstitucion
-    cambios.id_tipo_institucion =
-      formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2
+  const handleCerrarModal = () => {
+    setEditando(null)
   }
 
-  if (formEdicion.pais !== String(editando.id_pais ?? '')) {
-    const idPais = Number(formEdicion.pais)
-    if (formEdicion.pais.trim() === '' || Number.isNaN(idPais)) {
-      alert(
-        idioma === 'es'
-          ? 'El país debe ser el número (id) del catálogo.'
-          : 'Country must be the numeric catalog id.'
-      )
+  const handleGuardarEdicion = async (formEdicion: InstitucionForm) => {
+    if (!editando) return
+
+    const cambios: CambiosInstitucion = {}
+
+    if (formEdicion.nombreInstitucion !== editando.desc_institucion) {
+      cambios.desc_institucion = formEdicion.nombreInstitucion
+    }
+
+    if (formEdicion.tipoInstitucion !== (editando.tipo_institucion ?? '')) {
+      cambios.tipo_institucion = formEdicion.tipoInstitucion
+      cambios.id_tipo_institucion =
+        formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2
+    }
+
+
+
+
+
+
+
+
+
+
+    if (formEdicion.entidad !== (editando.entidad_nombre ?? '')) {
+      const idEntidad = obtenerIdEntidad(formEdicion.entidad)
+      if (idEntidad === null) {
+        alert(
+          idioma === 'es'
+            ? 'La entidad no es válida.'
+            : 'Country is not valid.'
+        )
+        return
+      }
+      cambios.id_entidad = idEntidad
+    }
+
+
+
+
+
+
+    if (formEdicion.pais !== (editando.pais_nombre ?? '')) {
+      const idPais = obtenerIdPais(formEdicion.pais)
+      if (idPais === null) {
+        alert(
+          idioma === 'es'
+            ? 'El país no es válido.'
+            : 'Country is not valid.'
+        )
+        return
+      }
+      cambios.id_pais = idPais
+    }
+
+    const eraPrivada =
+      editando.ind_empresa === '1' || editando.ind_empresa === 'S'
+    if ((formEdicion.privada === 'SI') !== eraPrivada) {
+      cambios.ind_empresa = formEdicion.privada === 'SI' ? '1' : '0'
+    }
+
+    if (formEdicion.poder !== (editando.tipo_poder ?? '')) {
+      cambios.tipo_poder = formEdicion.poder || null
+    }
+
+    if (
+      formEdicion.origenInformacion !==
+      (editando.origen_informacion ?? '')
+    ) {
+      cambios.origen_informacion = formEdicion.origenInformacion || null
+    }
+
+    if (Object.keys(cambios).length === 0) {
+      setEditando(null)
       return
     }
-    cambios.id_pais = idPais
-  }
 
-  const eraPrivada =
-    editando.ind_empresa === '1' || editando.ind_empresa === 'S'
-  if ((formEdicion.privada === 'SI') !== eraPrivada) {
-    cambios.ind_empresa = formEdicion.privada === 'SI' ? '1' : '0'
-  }
-
-  if (formEdicion.poder !== (editando.tipo_poder ?? '')) {
-    cambios.tipo_poder = formEdicion.poder || null
-  }
-
-if (
-  formEdicion.origenInformacion !==
-  (editando.origen_informacion ?? '')
-) {
-  cambios.origen_informacion = formEdicion.origenInformacion || null
-}
-
-  if (Object.keys(cambios).length === 0) {
-    setEditando(null)
-    return
-  }
-
-  try {
-    await actualizarInstitucion(editando.id_institucion, cambios)
-    setInstitucionesAPI((prev) =>
-      prev.map((i) =>
-        i.id_institucion === editando.id_institucion
-          ? { ...i, ...cambios }
-          : i
+    try {
+      await actualizarInstitucion(editando.id_institucion, cambios)
+      setInstitucionesAPI((prev) =>
+        prev.map((i) =>
+          i.id_institucion === editando.id_institucion
+            ? { ...i, ...cambios }
+            : i
+        )
       )
+      setEditando(null)
+      setRefreshTrigger((prev) => prev + 1)
+    } catch (error) {
+      console.error('Error al actualizar:', error)
+      alert(error instanceof Error ? error.message : 'Error al actualizar')
+    }
+  }
+
+  const handleEliminarDesdeModal = async () => {
+    if (!editando) return
+
+    const confirmar = window.confirm(
+      idioma === 'es'
+        ? '¿Estás seguro de que quieres eliminar esta institución?'
+        : 'Are you sure you want to delete this institution?'
     )
-    setEditando(null)
-    setRefreshTrigger((prev) => prev + 1)
-  } catch (error) {
-    console.error('Error al actualizar:', error)
-    alert(error instanceof Error ? error.message : 'Error al actualizar')
+    if (!confirmar) return
+
+    try {
+      await eliminarInstitucion(editando.id_institucion)
+      console.log('Institución eliminada')
+
+      setEditando(null)
+      setRefreshTrigger((prev) => prev + 1)
+    } catch (error) {
+      console.error('Error al eliminar:', error)
+      alert(error instanceof Error ? error.message : 'Error al eliminar')
+    }
   }
-}
-
-const handleEliminarDesdeModal = async () => {
-  if (!editando) return
-
-  const confirmar = window.confirm(
-    idioma === 'es'
-      ? '¿Estás seguro de que quieres eliminar esta institución?'
-      : 'Are you sure you want to delete this institution?'
-  )
-  if (!confirmar) return
-
-  try {
-    await eliminarInstitucion(editando.id_institucion)
-    console.log('Institución eliminada')
-
-    setEditando(null)
-    setRefreshTrigger((prev) => prev + 1)
-  } catch (error) {
-    console.error('Error al eliminar:', error)
-    alert(error instanceof Error ? error.message : 'Error al eliminar')
-  }
-}
-
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
-      <Header
-        t={t}
-        vista={vista}
-        totalRegistradas={totalRegistros}
-        onCambiarIdioma={() =>
-          setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
-        }
-        onIrAlta={() => setVista('alta')}
-        onIrLista={() => setVista('lista')}
-      />
-
-      <main
-        id="mainContent"
-        className="flex-1 w-full relative z-10 flex flex-col"
-      >
-        {vista === 'lista' ? (
-          <ListaInstituciones
-            institucionesAPI={institucionesAPI}
-            cargando={cargandoInstituciones}
-            error={errorInstituciones}
-            t={t}
-            idioma={idioma}
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            haySiguiente={haySiguiente}
-            onCambiarPagina={setPaginaActual}
-            filtros={filtros}
-            setFiltros={setFiltros}
-            onEditar={handleEditar}
-          />
-        ) : (
-          <div className="w-full max-w-4xl mx-auto px-4 py-8">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-6 md:p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#13322e] text-white">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M3 21h18" />
-                        <path d="M5 21V7l8-4 8 4v14" />
-                        <path d="M17 21v-8.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5V21" />
-                      </svg>
+    <Layout
+      t={t}
+      vista={vista}
+      totalRegistradas={totalRegistros}
+      onCambiarIdioma={() =>
+        setIdioma((prev) => (prev === 'es' ? 'en' : 'es'))
+      }
+      onIrAlta={() => setVista('alta')}
+      onIrLista={() => setVista('lista')}
+    >
+      {vista === 'lista' ? (
+        <ListaInstituciones
+          institucionesAPI={institucionesAPI}
+          cargando={cargandoInstituciones}
+          error={errorInstituciones}
+          t={t}
+          idioma={idioma}
+          paginaActual={paginaActual}
+          totalPaginas={totalPaginas}
+          haySiguiente={haySiguiente}
+          onCambiarPagina={setPaginaActual}
+          filtros={filtros}
+          setFiltros={setFiltros}
+          onEditar={handleEditar}
+        />
+      ) : (
+        <div className="w-full max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-6 md:p-8">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
+                      {t.registroTitulo}
                     </span>
-                    <div>
-                      <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
-                        {t.registroTitulo}
-                      </span>
-                      <h2 className="text-2xl font-semibold text-[#13322e] leading-tight">
-                        {t.altaTitulo}
-                      </h2>
-                    </div>
+                    <h2 className="text-2xl font-semibold text-[#13322e] leading-tight">
+                      {t.altaTitulo}
+                    </h2>
                   </div>
                 </div>
+              </div>
 
-                <p className="text-sm text-slate-500 mb-6">
-                  {t.altaSubtitulo}
-                </p>
+              <p className="text-sm text-slate-500 mb-6">
+                {t.altaSubtitulo}
+              </p>
 
-                <form
-                  onSubmit={handleSubmit}
-                  autoComplete="off"
-                  className="space-y-6"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="nombreInstitucion"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.nombreInstitucion}{' '}
-                        <span className="text-[#9d2449]">*</span>
-                      </label>
+              <form
+                onSubmit={handleSubmit}
+                autoComplete="off"
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="nombreInstitucion"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.nombreInstitucion}{' '}
+                      <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="nombreInstitucion"
+                      name="nombreInstitucion"
+                      type="text"
+                      placeholder={t.phNombreInstitucion}
+                      value={form.nombreInstitucion}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="tipoInstitucion"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.tipoInstitucion}{' '}
+                      <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <select
+                      id="tipoInstitucion"
+                      name="tipoInstitucion"
+                      value={form.tipoInstitucion}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    >
+                      <option value="">{t.seleccionaOpcion}</option>
+                      <option value="NACIONAL">{t.opcionNacional}</option>
+                      <option value="EXTRANJERA">{t.opcionExtranjera}</option>
+                    </select>
+                  </div>
+
+                  <NivelesAcordeon form={form} setForm={setForm} t={t} />
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="pais"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.pais} <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <PaisAutocomplete
+                      value={form.pais}
+                      onChange={(v) =>
+                        setForm((prev) => ({ ...prev, pais: v }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="entidad"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.entidad}{' '}
+                      <span className="text-slate-400">{t.opcional}</span>
+                    </label>
+                    {bloqueado ? (
                       <input
-                        id="nombreInstitucion"
-                        name="nombreInstitucion"
+                        id="entidad"
+                        name="entidad"
                         type="text"
-                        placeholder={t.phNombreInstitucion}
-                        value={form.nombreInstitucion}
-                        onChange={handleChange}
-                        required
-                        className="input-style"
+                        placeholder={t.phEntidad}
+                        value=""
+                        disabled
+                        className="input-style opacity-50 cursor-not-allowed"
                       />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="tipoInstitucion"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.tipoInstitucion}{' '}
-                        <span className="text-[#9d2449]">*</span>
-                      </label>
-                      <select
-                        id="tipoInstitucion"
-                        name="tipoInstitucion"
-                        value={form.tipoInstitucion}
-                        onChange={handleChange}
-                        required
-                        className="input-style"
-                      >
-                        <option value="">{t.seleccionaOpcion}</option>
-                        <option value="NACIONAL">{t.opcionNacional}</option>
-                        <option value="EXTRANJERA">
-                          {t.opcionExtranjera}
-                        </option>
-                      </select>
-                    </div>
-                    
-
-
-
-
-
-
-
-
-
-
-
-
-                    <NivelesAcordeon form={form} setForm={setForm} t={t} />
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="pais"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.pais} <span className="text-[#9d2449]">*</span>
-                      </label>
-                      <PaisAutocomplete
-                        value={form.pais}
+                    ) : form.pais === 'México' ? (
+                      <EntidadAutocomplete
+                        value={form.entidad}
                         onChange={(v) =>
-                          setForm((prev) => ({ ...prev, pais: v }))
+                          setForm((prev) => ({ ...prev, entidad: v }))
                         }
                       />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="entidad"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.entidad}{' '}
-                          <span className="text-slate-400">{t.opcional}</span>
-                      </label>
-                      {bloqueado ? (
-                        <input
-                          id="entidad"
-                          name="entidad"
-                          type="text"
-                          placeholder={t.phEntidad}
-                          value=""
-                          disabled
-                          className="input-style opacity-50 cursor-not-allowed"
-                        />
-                      ) : form.pais === 'México' ? (
-                        <EntidadAutocomplete
-                          value={form.entidad}
-                          onChange={(v) =>
-                            setForm((prev) => ({ ...prev, entidad: v }))
-                          }
-                        />
-                      ) : (
-                        <input
-                          id="entidad"
-                          name="entidad"
-                          type="text"
-                          placeholder={t.phEntidad}
-                          value={form.entidad}
-                          onChange={handleChange}
-                          className="input-style"
-                        />
-                      )}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="municipio"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.municipio}{' '}
-                        <span className="text-slate-400">{t.opcional}</span>
-                      </label>
+                    ) : (
                       <input
-                        id="municipio"
-                        name="municipio"
+                        id="entidad"
+                        name="entidad"
                         type="text"
-                        placeholder={t.phMunicipio}
-                        value={bloqueado ? '' : form.municipio}
-                        onChange={handleChange}
-                        disabled={bloqueado}
-                        className={`input-style ${
-                          bloqueado ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="localidad"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.localidad}{' '}
-                        <span className="text-slate-400">{t.opcional}</span>
-                      </label>
-                      <input
-                        id="localidad"
-                        name="localidad"
-                        type="text"
-                        placeholder={t.phLocalidad}
-                        value={bloqueado ? '' : form.localidad}
-                        onChange={handleChange}
-                        disabled={bloqueado}
-                        className={`input-style ${
-                          bloqueado ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="razonSocial"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.institucionPadre}{' '}
-                        <span className="text-slate-400">{t.opcional}</span>
-                      </label>
-                      <input
-                        id="razonSocial"
-                        name="razonSocial"
-                        type="text"
-                        placeholder={t.phInstitucionPadre}
-                        value={form.razonSocial}
+                        placeholder={t.phEntidad}
+                        value={form.entidad}
                         onChange={handleChange}
                         className="input-style"
                       />
-                    </div>
+                    )}
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="privada"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.privada}{' '}
-                        <span className="text-[#9d2449]">*</span>
-                      </label>
-                      <select
-                        id="privada"
-                        name="privada"
-                        value={form.privada}
-                        onChange={handleChange}
-                        required
-                        className="input-style"
-                      >
-                        <option value="">{t.seleccionaOpcion}</option>
-                        <option value="SI">{t.opcionSi}</option>
-                        <option value="NO">{t.opcionNo}</option>
-                      </select>
-                    </div>
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="municipio"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.municipio}{' '}
+                      <span className="text-slate-400">{t.opcional}</span>
+                    </label>
+                    <input
+                      id="municipio"
+                      name="municipio"
+                      type="text"
+                      placeholder={t.phMunicipio}
+                      value={bloqueado ? '' : form.municipio}
+                      onChange={handleChange}
+                      disabled={bloqueado}
+                      className={`input-style ${
+                        bloqueado ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    />
+                  </div>
 
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="localidad"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.localidad}{' '}
+                      <span className="text-slate-400">{t.opcional}</span>
+                    </label>
+                    <input
+                      id="localidad"
+                      name="localidad"
+                      type="text"
+                      placeholder={t.phLocalidad}
+                      value={bloqueado ? '' : form.localidad}
+                      onChange={handleChange}
+                      disabled={bloqueado}
+                      className={`input-style ${
+                        bloqueado ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    />
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="nombre"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.nombre}{' '}
-                        <span className="text-[#9d2449]">*</span>
-                      </label>
-                      <input
-                        id="nombre"
-                        name="nombre"
-                        type="text"
-                        placeholder={t.phNombre}
-                        value={form.nombre}
-                        onChange={handleChange}
-                        required
-                        className="input-style"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="razonSocial"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.institucionPadre}{' '}
+                      <span className="text-slate-400">{t.opcional}</span>
+                    </label>
+                    <input
+                      id="razonSocial"
+                      name="razonSocial"
+                      type="text"
+                      placeholder={t.phInstitucionPadre}
+                      value={form.razonSocial}
+                      onChange={handleChange}
+                      className="input-style"
+                    />
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="correo"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.correo}{' '}
-                        <span className="text-[#9d2449]">*</span>
-                      </label>
-                      <input
-                        id="correo"
-                        name="correo"
-                        type="email"
-                        placeholder={t.phCorreo}
-                        value={form.correo}
-                        onChange={handleChange}
-                        required
-                        className="input-style"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="privada"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.privada} <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <select
+                      id="privada"
+                      name="privada"
+                      value={form.privada}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    >
+                      <option value="">{t.seleccionaOpcion}</option>
+                      <option value="SI">{t.opcionSi}</option>
+                      <option value="NO">{t.opcionNo}</option>
+                    </select>
+                  </div>
 
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label
-                        htmlFor="observaciones"
-                        className="text-sm font-medium text-slate-700"
-                      >
-                        {t.observaciones}
-                        <span className="text-slate-400">{t.opcional}</span>
-                      </label>
-                      <textarea
-                        id="observaciones"
-                        name="observaciones"
-                        placeholder={t.phObservaciones}
-                        value={form.observaciones}
-                        onChange={handleChange}
-                        rows={3}
-                        className="input-style"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="nombre"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.nombre} <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="nombre"
+                      name="nombre"
+                      type="text"
+                      placeholder={t.phNombre}
+                      value={form.nombre}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    />
+                  </div>
 
-                      <div className="space-y-1.5">
-                        <label
-                          htmlFor="poder"
-                          className="text-sm font-medium text-slate-700"
-                        >
-                          {t.poder}{' '}
-                          <span className="text-[#9d2449]">*</span>
-                        </label>
-                        <select
-                          id="poder"
-                          name="poder"
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="correo"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.correo} <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <input
+                      id="correo"
+                      name="correo"
+                      type="email"
+                      placeholder={t.phCorreo}
+                      value={form.correo}
+                      onChange={handleChange}
+                      required
+                      className="input-style"
+                    />
+                  </div>
 
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label
+                      htmlFor="observaciones"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.observaciones}
+                      <span className="text-slate-400">{t.opcional}</span>
+                    </label>
+                    <textarea
+                      id="observaciones"
+                      name="observaciones"
+                      placeholder={t.phObservaciones}
+                      value={form.observaciones}
+                      onChange={handleChange}
+                      rows={3}
+                      className="input-style"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="poder"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.poder} <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <select
+                      id="poder"
+                      name="poder"
                       value={
                         t.opcionesPoder.includes(form.poder)
                           ? form.poder
@@ -2156,18 +1803,17 @@ const handleEliminarDesdeModal = async () => {
                     )}
                   </div>
 
-                      <div className="space-y-1.5">
-                        <label
-                          htmlFor="origenInformacion"
-                          className="text-sm font-medium text-slate-700"
-                        >
-                          {t.origenInformacion}{' '}
-                          <span className="text-[#9d2449]">*</span>
-                        </label>
-                        <select
-                          id="origenInformacion"
-                          name="origenInformacion"
-
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="origenInformacion"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      {t.origenInformacion}{' '}
+                      <span className="text-[#9d2449]">*</span>
+                    </label>
+                    <select
+                      id="origenInformacion"
+                      name="origenInformacion"
                       value={
                         t.opcionesOrigen.includes(form.origenInformacion)
                           ? form.origenInformacion
@@ -2209,61 +1855,59 @@ const handleEliminarDesdeModal = async () => {
                       />
                     )}
                   </div>
-                  </div>
+                </div>
 
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs text-slate-500">
-                      {t.obligatorios}{' '}
-                      <span className="text-[#9d2449]">*</span>{' '}
-                      {t.obligatoriosSufijo}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449]"
-                      >
-                        {t.cancelar}
-                      </button>
-                      <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-md bg-[#13322e] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0d2320] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449]"
-                      >
-                        {t.guardar}
-                      </button>
-                    </div>
-                  </div>
-                </form>
-
-                {enviado && (
-                  <div className="mt-4 rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800 flex items-center justify-between gap-3">
-                    <span>{t.registradaOk}</span>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xs text-slate-500">
+                    {t.obligatorios}{' '}
+                    <span className="text-[#9d2449]">*</span>{' '}
+                    {t.obligatoriosSufijo}
+                  </span>
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => setVista('lista')}
-                      className="text-[#13322e] font-medium underline text-xs"
+                      className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449]"
                     >
-                      {t.verRegistradas}
+                      {t.cancelar}
+                    </button>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center rounded-md bg-[#13322e] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#0d2320] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9d2449]"
+                    >
+                      {t.guardar}
                     </button>
                   </div>
-                )}
-              </div>
+                </div>
+              </form>
+
+              {enviado && (
+                <div className="mt-4 rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800 flex items-center justify-between gap-3">
+                  <span>{t.registradaOk}</span>
+                  <button
+                    type="button"
+                    onClick={() => setVista('lista')}
+                    className="text-[#13322e] font-medium underline text-xs"
+                  >
+                    {t.verRegistradas}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
 
-{editando && (
-  <ModalEditar
-    institucion={editando}
-    t={t}
-    idioma={idioma}
-    onCerrar={handleCerrarModal}
-    onGuardar={handleGuardarEdicion}
-    onEliminar={handleEliminarDesdeModal}
-  />
-)}
-      <Footer t={t} />
-    </div>
+      {editando && (
+        <ModalEditar
+          institucion={editando}
+          t={t}
+          idioma={idioma}
+          onCerrar={handleCerrarModal}
+          onGuardar={handleGuardarEdicion}
+          onEliminar={handleEliminarDesdeModal}
+        />
+      )}
+    </Layout>
   )
 }
 

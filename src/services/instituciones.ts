@@ -1,25 +1,42 @@
-const API_BASE_URL = 'http://172.16.11.10:8000'
+const API_BASE_URL = 'http://172.16.11.24:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
-  id_institucion_padre: number | null
-  id_tipo_institucion: number | null
-  id_pais: number | null
-  id_entidad: number | null
-  id_entidad_ubicacion: number | null
-  id_municipio: number | null
-  id_localidad: number | null
-  id_tipo_inst_nivel_uno: number | null
-  id_tipo_inst_nivel_dos: number | null
-  id_tipo_inst_nivel_tres: number | null
-  cve_institucion: string | null
   desc_institucion: string
+
+  id_tipo_institucion: number | null
+  tipo_institucion_nombre: string | null
+
+  id_pais: number | null
+  pais_nombre: string | null
+
+  id_entidad: number | null
+  entidad_nombre: string | null
+
+  id_municipio: number | null
+  municipio_nombre: string | null
+
+  id_localidad: number | null
+  localidad_nombre: string | null   
+
+  nivel_uno_nombre: string | null
+  nivel_dos_nombre: string | null
+  nivel_tres_nombre: string | null  
+
+  id_institucion_padre: number | null
+  id_entidad_ubicacion: number | null
+
+  cve_institucion: string | null
   ind_empresa: string | null
   origen_informacion: string | null
   tipo_institucion: string | null
   tipo_poder?: string | null
   cve_peoplesoft?: string | null
   ind_inst_superior?: string | null
+
+  id_tipo_inst_nivel_uno?: number | null
+  id_tipo_inst_nivel_dos?: number | null
+  id_tipo_inst_nivel_tres?: number | null
 }
 
 export type FiltrosInstituciones = {
