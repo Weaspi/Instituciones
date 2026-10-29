@@ -28,7 +28,6 @@ function Header({
       </a>
 
       <div className="mexico__contenedor">
-        {/* Escudo */}
         <a
           href="https://www.gob.mx/"
           className="mexico__aescudo"
@@ -70,20 +69,7 @@ function Header({
           >
             {t.btnIdioma}
           </button>
-          <button
-            type="button"
-            onClick={onIrAlta}
-            className={`btn-gob ${vista === 'alta' ? 'btn-gob--active' : ''}`}
-          >
-            {t.navAlta}
-          </button>
-          <button
-            type="button"
-            onClick={onIrLista}
-            className={`btn-gob ${vista === 'lista' ? 'btn-gob--active' : ''}`}
-          >
-            {t.navRegistradas} ({totalRegistradas})
-          </button>
+
         </nav>
       </div>
     </header>

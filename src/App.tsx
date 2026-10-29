@@ -6,11 +6,18 @@ import { FormularioAlta, ModalEditar, FORM_INICIAL, type InstitucionForm, normal
 import { TablaInstituciones } from './components/TablaInstituciones'
 import { ESTADOS_MEXICO } from './data/estados'
 import { PAISES } from './data/paises'
-
+import { MUNICIPIOS_DATA } from './data/municipios'
 const obtenerIdPais = (nombre: string) => { const i = PAISES.findIndex(p => normalizar(p) === normalizar(nombre)); return i >= 0 ? i + 1 : null }
 const obtenerIdEntidad = (nombre: string) => { const i = ESTADOS_MEXICO.findIndex(e => normalizar(e) === normalizar(nombre)); return i >= 0 ? i + 1 : null }
 
-
+const obtenerIdMunicipio = (nombreMunicipio: string, nombreEstado: string) => {
+  if (!nombreMunicipio || !nombreEstado) return null
+  const index = MUNICIPIOS_DATA.findIndex(
+    (m) => normalizar(m.municipio) === normalizar(nombreMunicipio) && 
+           normalizar(m.estado) === normalizar(nombreEstado)
+  )
+  return index >= 0 ? index + 1 : null
+}
 const obtenerIdNivelUno = (nombre: string): number | null => {
   if (!nombre) return null
   const index = TRADUCCIONES.es.opcionesNivelUno.findIndex(op => normalizar(op) === normalizar(nombre))
@@ -23,14 +30,8 @@ const obtenerIdNivelDos = (nombre: string): number | null => {
   return index >= 0 ? index + 1 : null
 }
 
-
 type Vista = 'alta' | 'lista'
 
-const obtenerIdOrigen = (nombre: string): number | null => {
-  if (!nombre) return null
-  const index = TRADUCCIONES.es.opcionesOrigen.findIndex(op => normalizar(op) === normalizar(nombre))
-  return index >= 0 ? index + 1 : null
-}
 function App() {
   const [vista, setVista] = useState<Vista>('alta')
   const [form, setForm] = useState<InstitucionForm>(FORM_INICIAL)
@@ -38,6 +39,7 @@ function App() {
   const [idioma, setIdioma] = useState<Idioma>('es')
   const [editando, setEditando] = useState<InstitucionAPI | null>(null)
   const t = TRADUCCIONES[idioma]
+  const [pageSize, setPageSize] = useState(10) 
   
   const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
   const [cargandoInstituciones, setCargandoInstituciones] = useState(false)
@@ -48,33 +50,47 @@ function App() {
   const [haySiguiente, setHaySiguiente] = useState(false)
   const [busquedaDebounced, setBusquedaDebounced] = useState('')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [filtros, setFiltros] = useState({ 
+  const [filtros, setFiltros] = useState<{
+    search: string
+    id_pais: number | null
+    tipo_institucion: string | null
+  }>({ 
     search: '', 
-    id_pais: null as number | null, 
-    tipo_institucion: null as string | null})
+    id_pais: null, 
+    tipo_institucion: null
+  })
 
   useEffect(() => { 
     const timer = setTimeout(() => { 
       setBusquedaDebounced(filtros.search)
-      setPaginaActual(1) 
-    }, 400); 
+      setPaginaActual(1)
+    }, 400)
     return () => clearTimeout(timer) 
   }, [filtros.search])
+
+  useEffect(() => {
+    setPaginaActual(1)
+  }, [pageSize])
 
   useEffect(() => {
     let cancelado = false
     const cargarInstituciones = async () => {
       try {
         setCargandoInstituciones(true); setErrorInstituciones(null)
-        const data = await obtenerInstituciones
-        ({ page: paginaActual, 
-          page_size: 10, 
+        
+        const data = await obtenerInstituciones({ 
+          page: paginaActual, 
+          size: pageSize,
           search: busquedaDebounced, 
           id_pais: filtros.id_pais, 
-          tipo_institucion: filtros.tipo_institucion })
+          tipo_institucion: filtros.tipo_institucion 
+        })
 
         if (cancelado) return
-        setInstitucionesAPI(data.results); setTotalRegistros(data.count); setTotalPaginas(data.totalPages); setHaySiguiente(Boolean(data.next) || data.results.length === 10)
+        setInstitucionesAPI(data.results); 
+        setTotalRegistros(data.count); 
+        setTotalPaginas(data.totalPages); 
+        setHaySiguiente(Boolean(data.next) || data.currentPage < data.totalPages)
       } catch (error) { 
         if (!cancelado) setErrorInstituciones(error instanceof Error ? error.message : 'Error') 
       } finally { 
@@ -83,9 +99,9 @@ function App() {
     }
     cargarInstituciones()
     return () => { cancelado = true }
-  }, [paginaActual, busquedaDebounced, filtros.id_pais, filtros.tipo_institucion, refreshTrigger])
+  }, [paginaActual, busquedaDebounced, filtros.id_pais, filtros.tipo_institucion, pageSize, refreshTrigger])
 
-
+  // 4. Efecto para el bloqueo de País/Entidad en Nacional
   useEffect(() => {
     if (form.tipoInstitucion === 'NACIONAL') {
       setForm((prev) => ({ ...prev, pais: 'México' }))
@@ -94,37 +110,58 @@ function App() {
     }
   }, [form.tipoInstitucion])
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => { setForm((prev) => ({ ...prev, [e.target.name]: e.target.value })) }
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => { 
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value })) 
+  }
+  
   const bloqueado = form.tipoInstitucion === 'EXTRANJERA'
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    const esNacional = form.tipoInstitucion === 'NACIONAL'
+    
+    const idEntidad = esNacional && form.entidad ? obtenerIdEntidad(form.entidad) : null
+    if (esNacional && form.entidad && idEntidad === null) {
+      alert('Selecciona la entidad de la lista')
+      return
+    }
+
+    const idPais = esNacional ? 143 : obtenerIdPais(form.pais)
+    if (idPais === null) {
+      alert('Selecciona un país de la lista')
+      return
+    }
+
     const payload = {
       desc_institucion: form.nombreInstitucion, 
       cve_institucion: `INST-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`, 
       cve_peoplesoft: '',
       tipo_institucion: form.tipoInstitucion || '', 
-      id_tipo_institucion: form.tipoInstitucion === 'NACIONAL' ? 1 : 2,
-      id_pais: form.tipoInstitucion === 'NACIONAL' ? 143 : (obtenerIdPais(form.pais) ?? null),
-      id_entidad: null, 
-      id_entidad_ubicacion: null, 
-      id_municipio: null, 
-      id_localidad: null,
-      id_institucion_padre: form.razonSocial ? Number(form.razonSocial) : null, 
+      id_tipo_institucion: esNacional ? 1 : 2,
       
+      id_pais: idPais,
+      id_entidad: idEntidad,
+      id_entidad_ubicacion: idEntidad, 
+      id_municipio: obtenerIdMunicipio(form.municipio, form.entidad),
+      municipio_nombre: form.municipio || null,
+      id_localidad: null,              
+      id_institucion_padre: form.razonSocial ? Number(form.razonSocial) : null, 
+      localidad_nombre: form.localidad || null,
       id_tipo_inst_nivel_uno: obtenerIdNivelUno(form.tipoInstitucionNivelUno),
       id_tipo_inst_nivel_dos: obtenerIdNivelDos(form.tipoInstitucionNivelDos),
 
       ind_empresa: form.privada === 'SI' ? '1' : '0', 
-      origen_informacion: obtenerIdOrigen(form.origenInformacion) ? String(obtenerIdOrigen(form.origenInformacion)) : '', 
+      origen_informacion: form.origenInformacion || null, 
       observaciones: form.observaciones || '',
-   
+      tipo_poder: null, 
       ind_inst_superior: 'N',
     }
+
     try {
       setEnviado(true); await crearInstitucion(payload as any)
       setPaginaActual(1); setBusquedaDebounced(''); 
-      setFiltros({ search: '', id_pais: null, tipo_institucion: null})
+      setFiltros({ search: '', id_pais: null, tipo_institucion: null })
       setRefreshTrigger((p) => p + 1); setVista('lista'); setForm(FORM_INICIAL)
     } catch (error) { alert(error instanceof Error ? error.message : 'Error'); setEnviado(false) }
   }
@@ -132,6 +169,11 @@ function App() {
   const handleGuardarEdicion = async (formEdicion: InstitucionForm) => {
     if (!editando) return
     const cambios: CambiosInstitucion = {}
+
+     if (formEdicion.tipoInstitucion !== (editando.tipo_institucion ?? '')) {
+      cambios.tipo_institucion = formEdicion.tipoInstitucion || undefined 
+      cambios.id_tipo_institucion = formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2
+    }
     
     if (formEdicion.nombreInstitucion !== editando.desc_institucion) 
       cambios.desc_institucion = formEdicion.nombreInstitucion
@@ -145,9 +187,8 @@ function App() {
     if (formEdicion.tipoInstitucionNivelUno !== (editando.nivel_uno_nombre ?? '')) {
       cambios.id_tipo_inst_nivel_uno = obtenerIdNivelUno(formEdicion.tipoInstitucionNivelUno)
     }
-    if (formEdicion.tipoInstitucionNivelDos !== (editando.nivel_dos_nombre ?? '')) {
-      cambios.id_tipo_inst_nivel_dos = obtenerIdNivelDos(formEdicion.tipoInstitucionNivelDos)
-    }
+    if (formEdicion.origenInformacion !== (editando.origen_informacion ?? '')) 
+      cambios.origen_informacion = formEdicion.origenInformacion || null
 
     if (Object.keys(cambios).length > 0) {
       try {
@@ -166,41 +207,55 @@ function App() {
   }
 
   return (
-    <Layout t={t} vista={vista} totalRegistradas={totalRegistros} onCambiarIdioma={() => setIdioma((p) => (p === 'es' ? 'en' : 'es'))} onIrAlta={() => setVista('alta')} onIrLista={() => setVista('lista')}>
+    <Layout 
+      t={t} 
+      vista={vista} 
+      totalRegistradas={totalRegistros} 
+      onCambiarIdioma={() => setIdioma((p) => (p === 'es' ? 'en' : 'es'))} 
+      onIrAlta={() => setVista('alta')} 
+      onIrLista={() => setVista('lista')}
+    >
       {vista === 'lista' ? (
         <TablaInstituciones 
-        institucionesAPI={institucionesAPI} 
-        cargando={cargandoInstituciones} 
-        error={errorInstituciones} 
-        t={t} 
-        idioma={idioma} 
-        paginaActual={paginaActual} 
-        totalPaginas={totalPaginas} 
-        haySiguiente={haySiguiente} 
-        onCambiarPagina={setPaginaActual} 
-        filtros={filtros} 
-        setFiltros={setFiltros} 
-        onEditar={setEditando} />
-
+          institucionesAPI={institucionesAPI} 
+          cargando={cargandoInstituciones} 
+          error={errorInstituciones} 
+          t={t} 
+          idioma={idioma} 
+          paginaActual={paginaActual} 
+          totalPaginas={totalPaginas} 
+          totalRegistros={totalRegistros} 
+          haySiguiente={haySiguiente} 
+          onCambiarPagina={setPaginaActual} 
+          filtros={filtros} 
+          setFiltros={setFiltros} 
+          onEditar={setEditando}
+          pageSize={pageSize} 
+          setPageSize={setPageSize} 
+        />
       ) : (
         <FormularioAlta 
-        form={form} 
-        setForm={setForm} 
-        handleSubmit={handleSubmit} 
-        handleChange={handleChange} 
-        bloqueado={bloqueado} 
-        enviado={enviado} 
-        setVista={setVista} 
-        t={t} 
-        idioma={idioma} />
+          form={form} 
+          setForm={setForm} 
+          handleSubmit={handleSubmit} 
+          handleChange={handleChange} 
+          bloqueado={bloqueado} 
+          enviado={enviado} 
+          setVista={setVista} 
+          t={t} 
+          idioma={idioma} 
+        />
       )}
-      {editando && <ModalEditar 
-      institucion={editando} 
-      t={t} 
-      idioma={idioma} 
-      onCerrar={() => setEditando(null)} 
-      onGuardar={handleGuardarEdicion} 
-      onEliminar={handleEliminar} />}
+      {editando && (
+        <ModalEditar 
+          institucion={editando} 
+          t={t} 
+          idioma={idioma} 
+          onCerrar={() => setEditando(null)} 
+          onGuardar={handleGuardarEdicion} 
+          onEliminar={handleEliminar} 
+        />
+      )}
     </Layout>
   )
 }

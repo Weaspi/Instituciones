@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.16:8000'
+const API_BASE_URL = 'http://172.16.11.17:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -32,6 +32,7 @@ export type InstitucionAPI = {
 
 export type FiltrosInstituciones = {
   page?: number
+  size?: number
   page_size?: number
   search?: string
   id_pais?: number | null
@@ -84,11 +85,14 @@ export async function obtenerInstituciones(
   previous: string | null
   results: InstitucionAPI[]
   totalPages: number
+  currentPage: number
 }> {
   const params = new URLSearchParams()
   params.append('page', String(filtros.page ?? 1))
-  params.append('page_size', String(filtros.page_size ?? 10))
+  params.append('size', String(filtros.size ?? 10)) 
   params.append('ordering', '-id_institucion')
+  
+
   if (filtros.search) params.append('desc_institucion', filtros.search)
   if (filtros.id_pais) params.append('id_pais', String(filtros.id_pais))
   if (filtros.tipo_institucion) params.append('tipo_institucion', filtros.tipo_institucion)
@@ -98,13 +102,25 @@ export async function obtenerInstituciones(
   if (!response.ok) throw new Error(`Error al obtener instituciones: ${response.status}`)
 
   const data = await response.json()
+  
   const totalHeader = response.headers.get('X-Total')
   const totalPagesHeader = response.headers.get('X-Total-Pages')
-  const results = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
-  const count = totalHeader ? Number(totalHeader) : data?.count ?? results.length
-  const totalPages = totalPagesHeader ? Number(totalPagesHeader) : Math.max(1, Math.ceil(count / (filtros.page_size ?? 10)))
+  const currentPageHeader = response.headers.get('X-Page') 
 
-  return { results, count, totalPages, next: data?.next ?? null, previous: data?.previous ?? null }
+  const results = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []
+  
+  const count = totalHeader ? Number(totalHeader) : data?.count ?? results.length
+  const totalPages = totalPagesHeader ? Number(totalPagesHeader) : Math.max(1, Math.ceil(count / (filtros.size ?? 10)))
+  const currentPage = currentPageHeader ? Number(currentPageHeader) : (filtros.page ?? 1)
+
+  return { 
+    results, 
+    count, 
+    totalPages, 
+    currentPage, 
+    next: data?.next ?? null, 
+    previous: data?.previous ?? null 
+  }
 }
 
 export async function crearInstitucion(data: CrearInstitucionPayload) {

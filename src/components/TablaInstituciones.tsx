@@ -10,18 +10,21 @@ type InstitucionGuardada = InstitucionForm & {
 }
 
 export function TablaInstituciones({
-  institucionesAPI,
-  cargando,
-  error,
-  t,
-  idioma,
-  paginaActual,
-  totalPaginas,
-  haySiguiente,
-  onCambiarPagina,
-  filtros,
-  setFiltros,
-  onEditar,
+  institucionesAPI, 
+  cargando, 
+  error, 
+  t, 
+  idioma, 
+  paginaActual, 
+  totalPaginas, 
+  totalRegistros, 
+  haySiguiente, 
+  onCambiarPagina, 
+  filtros, 
+  setFiltros, 
+  onEditar, 
+  pageSize, 
+  setPageSize
 }: {
   institucionesAPI: InstitucionAPI[]
   cargando: boolean
@@ -30,23 +33,24 @@ export function TablaInstituciones({
   idioma: Idioma
   paginaActual: number
   totalPaginas: number
+  totalRegistros: number
   haySiguiente: boolean
   onCambiarPagina: (p: number) => void
   filtros: {
     search: string
     id_pais: number | null
     tipo_institucion: string | null
-   
   }
   setFiltros: React.Dispatch<
     React.SetStateAction<{
       search: string
       id_pais: number | null
       tipo_institucion: string | null
-
     }>
   >
   onEditar: (institucion: InstitucionAPI) => void
+  pageSize: number
+  setPageSize: (size: number) => void
 }) {
   const filtradas: InstitucionGuardada[] = useMemo(() => {
     return (institucionesAPI ?? []).map((i) => ({
@@ -55,7 +59,7 @@ export function TablaInstituciones({
       fechaRegistro: '',
 
       nombreInstitucion: i.desc_institucion,
-      tipoInstitucion: i.tipo_institucion_nombre ?? '',
+      tipoInstitucion: i.tipo_institucion ?? '',
       tipoInstitucionNivelUno: i.nivel_uno_nombre ?? '',
       tipoInstitucionNivelDos: i.nivel_dos_nombre ?? '',
       tipoInstitucionNivelTres: i.nivel_tres_nombre ?? '',
@@ -67,33 +71,29 @@ export function TablaInstituciones({
 
       razonSocial: i.id_institucion_padre ? String(i.id_institucion_padre) : '',
       privada: i.ind_empresa ?? '',
-
-      nombre: '', // El backend no devuelve nombre del responsable, se queda vacío
-      correo: '', // El backend no devuelve correo, se queda vacío
+      nombre: '',
+      correo: '',
       observaciones: '',
       origenInformacion: i.origen_informacion ?? '',
     }))
   }, [institucionesAPI])
 
   return (
-    <div className="w-full bg-[#f8f9fa] min-h-screen pb-12 pt-8">
-      <div className="max-w-350 mx-auto px-4 md:px-8">
+    <div className="w-full bg-[#ffffff] min-h-screen pb-12 pt-8">
+      <div className="max-w-[1700px] mx-auto px-4 md:px-8">
         
-        {/* Título de la sección */}
         <div className="mb-6">
           <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
             {t.catalogo}
           </span>
-          <h2 className="text-[28px] font-semibold text-gray-900 leading-tight">
+          <h2 className="text-[28px] font-semibold text-gray-900 leading-tight font-[var(--font-patria)]">
             {t.listaTitulo}
           </h2>
         </div>
 
-        {/* Tarjeta principal */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-6 md:p-8">
             
-            {/* Filtros */}
             <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               <div className="md:col-span-2">
                 <label className="text-sm font-medium text-gray-800 mb-1.5 block">
@@ -125,7 +125,7 @@ export function TablaInstituciones({
                   }}
                   className="w-full border-gray-300 rounded-md p-2.5 border focus:border-[#9d2449] focus:ring-1 focus:ring-[#9d2449] text-sm"
                 >
-                  <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>
+                  <option value="">{idioma === 'es' ? 'Todos' : 'All'}</option>T
                   <option value="56">Otro</option>
                 </select>
               </div>
@@ -174,16 +174,17 @@ export function TablaInstituciones({
               <>
                 <div className="overflow-x-auto border border-gray-200 rounded-lg">
                   <table className="min-w-full text-sm text-left">
-                    <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
+                    <thead className="bg-gray-50 text-gray-700 border-b border-gray-200">
                       <tr>
-                        <th className="px-4 py-3">{t.colNombre}</th>
-                        <th className="px-4 py-3">{t.colTipoInstitucion || 'Tipo de Inst.'}</th>
-                        <th className="px-4 py-3">{t.colPais}</th>
-                        <th className="px-4 py-3">{t.colEntidad}</th>
-                        <th className="px-4 py-3">{t.colMunicipio}</th>
-                        <th className="px-4 py-3">{t.colInstitucion1 || 'Nivel 1'}</th>
-                        <th className="px-4 py-3">{t.colInstitucion2 || 'Nivel 2'}</th>
-                        <th className="px-4 py-3 text-center">Acciones</th>
+                    
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colNombre}</th>
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colTipoInstitucion || 'Tipo de Inst.'}</th>
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colPais}</th>
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colEntidad}</th>
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colMunicipio}</th>
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colInstitucion1 || 'Nivel 1'}</th>
+                        <th className="px-4 py-3 font-semibold font-[var(--font-patria)]">{t.colInstitucion2 || 'Nivel 2'}</th>
+                        <th className="px-4 py-3 font-semibold text-center font-[var(--font-patria)]">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -217,29 +218,50 @@ export function TablaInstituciones({
                 </div>
 
                 {/* Paginación */}
-                <div className="flex items-center justify-between mt-6">
-                  <button
-                    type="button"
-                    disabled={paginaActual <= 1}
-                    onClick={() => onCambiarPagina(paginaActual - 1)}
-                    className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 hover:bg-gray-50"
-                  >
-                    ← Anterior
-                  </button>
+                <div className="flex flex-col md:flex-row items-center justify-between mt-6 gap-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">
+                      <strong>Total:</strong> {totalRegistros} resultados
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-gray-600">Registros por página:</label>
+                      <select
+                        value={pageSize}
+                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        className="border-gray-300 rounded-md p-1 border text-sm focus:border-[#9d2449]"
+                      >
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                      </select>
+                    </div>
+                  </div>
 
-                  <span className="text-sm text-gray-600">
-                    Página {paginaActual} de {22569}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      disabled={paginaActual <= 1}
+                      onClick={() => onCambiarPagina(paginaActual - 1)}
+                      className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 hover:bg-gray-50"
+                    >
+                      ← Anterior
+                    </button>
 
-                  <button
-                    type="button"
-                    disabled={!haySiguiente}
-                    onClick={() => onCambiarPagina(paginaActual + 1)}
-                    className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 hover:bg-gray-50"
-                  >
-                    Siguiente →
-                  </button>
+                    <span className="text-sm font-medium text-gray-700">
+                      Página {paginaActual} 
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={haySiguiente}
+                      onClick={() => onCambiarPagina(paginaActual + 1)}
+                      className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 hover:bg-gray-50"
+                    >
+                      Siguiente →
+                    </button>
+                  </div>
                 </div>
+
               </>
             )}
           </div>
