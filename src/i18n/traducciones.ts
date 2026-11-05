@@ -2,16 +2,18 @@ export type Idioma = 'es' | 'en'
 
 export const TRADUCCIONES = {
   es: {
+    alta: 'Formulario de alta',
     appTitulo: 'Instituciones',
     navAlta: 'Alta',
     navRegistradas: 'Registradas',
+    cargaMasiva: 'Carga masiva',
     btnIdioma: 'ES',
-
+    progreso: 'Progreso del formulario',
     registroTitulo: 'Registro Institucional',
     altaTitulo: 'Alta de Institución',
-    altaSubtitulo:
-      'Datos mínimos para identificar y validar a la institución responsable dentro del catálogo.',
-
+    altaSubtitulo: 'Los datos marcados con ',
+    altaSubtitulo2: ' son obligatorios.',
+    datosInstitucion: 'Datos de la institución',
     nombreInstitucion: 'Nombre de institución',
     tipoInstitucion: 'Tipo de institución',
     seleccionaOpcion: 'Selecciona una opción',
@@ -20,7 +22,6 @@ export const TRADUCCIONES = {
     pais: 'País',
     entidad: 'Entidad',
     municipio: 'Municipio',
-    localidad: 'Localidad',
     institucionPadre: 'Institución Padre',
     privada: 'Privada',
     opcionSi: 'SI',
@@ -108,17 +109,22 @@ export const TRADUCCIONES = {
     footerDenuncia: 'Denuncia contra servidores públicos',
   },
   
+
+
+  
   en: {
+    alta: 'Registration Form',
     appTitulo: 'Institutions',
     navAlta: 'Register',
     navRegistradas: 'Registered',
+    cargaMasiva: 'Bulk Upload',
     btnIdioma: 'EN',
-
+    progreso: 'Form progress',
     registroTitulo: 'Institutional Registry',
     altaTitulo: 'Register Institution',
-    altaSubtitulo:
-      'Minimum data to identify and validate the responsible institution in the catalog.',
-
+    altaSubtitulo: 'Data marked with',
+    altaSubtitulo2: ' are required.',
+    datosInstitucion: 'Institution Data',
     nombreInstitucion: 'Institution name',
     tipoInstitucion: 'Institution type',
     seleccionaOpcion: 'Select an option',
@@ -127,7 +133,6 @@ export const TRADUCCIONES = {
     pais: 'Country',
     entidad: 'State',
     municipio: 'Municipality',
-    localidad: 'Locality',
     institucionPadre: 'Parent Institution',
     privada: 'Private',
     opcionSi: 'YES',

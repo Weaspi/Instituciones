@@ -6,7 +6,7 @@ type HeaderProps = {
     navAlta: string
     navRegistradas: string
   }
-  vista: 'alta' | 'lista'
+  vista: 'alta' | 'lista' | 'masiva'
   totalRegistradas: number
   onCambiarIdioma: () => void
   onIrAlta: () => void
@@ -41,7 +41,6 @@ function Header({
           />
         </a>
 
-        {/* Links oficiales + botones de la app */}
         <nav className="mexico__menu">
           <a
             href="https://www.gob.mx/tramites"

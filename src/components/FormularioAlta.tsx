@@ -12,7 +12,6 @@ export type InstitucionForm = {
   pais: string
   entidad: string
   municipio: string
-  localidad: string
   razonSocial: string
   privada: string
   nombre: string
@@ -29,7 +28,6 @@ export const FORM_INICIAL: InstitucionForm = {
   pais: '', 
   entidad: '', 
   municipio: '', 
-  localidad: '', 
   razonSocial: '', 
   privada: '',
   nombre: '', 
@@ -39,6 +37,11 @@ export const FORM_INICIAL: InstitucionForm = {
 }
 
 export const normalizar = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+export const normalizarMayus = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
 
 function EntidadAutocomplete({ value, onChange }: { value: string, onChange: (v: string) => void }) {
   const [abierto, setAbierto] = useState(false)
@@ -284,13 +287,13 @@ function NivelesAcordeon({ form, setForm, t }: { form: InstitucionForm, setForm:
   return (
     <div className="md:col-span-3 rounded-lg border border-gray-200 bg-gray-50/50 mt-2">
       <div className="px-4 py-3 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-[#5c0a2e] font-[var(--font-patria)]">{t.nivelesTitulo} <span className="text-[#9d2449]">*</span></h3>
+        <h3 className="text-sm font-semibold text-[#000000] font- [family-name:var(--font-patria)]">{t.nivelesTitulo} <span className="text-[#fc2222]">*</span></h3>
         <p className="text-xs text-gray-500 mt-0.5">{t.nivelesSubtitulo}</p>
       </div>
       <ul className="divide-y divide-gray-200">
         <li>
           <HeaderNivel nivelKey="tipoInstitucionNivelUno" label={t.nivelUno} />
-          {abierto === 'tipoInstitucionNivelUno' && <NivelConOpciones form={form} setForm={setForm} name="tipoInstitucionNivelUno" opciones={t.opcionesNivelUno} t={t} />}
+          {abierto === 'tipoInstitucionNivelUno' && <NivelConOpciones form={form} setForm={setForm} name="tipoInstitucionNivelUno" opciones={t.opcionesNivelUno} t={t}  />}
         </li>
         <li>
           <HeaderNivel nivelKey="tipoInstitucionNivelDos" label={t.nivelDos} />
@@ -302,24 +305,54 @@ function NivelesAcordeon({ form, setForm, t }: { form: InstitucionForm, setForm:
 }
 
 export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloqueado, enviado, setVista, t }: any) {
+  const camposObligatorios = [
+    form.nombreInstitucion,
+    form.tipoInstitucion,
+    form.privada,
+    form.tipoInstitucionNivelUno,
+    form.tipoInstitucionNivelDos,
+    form.pais,
+    form.origenInformacion,
+  ]
+
+  const camposLlenos = camposObligatorios.filter((valor) => valor && valor.trim() !== '').length
+  const progreso = Math.round((camposLlenos / camposObligatorios.length) * 100)
+  
+
   return (
     <main className="flex-1 p-6 md:p-10 bg-white min-h-screen">
       
-
-      <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
-        <h1 className="text-2xl font-semibold text-gray-900 font-[var(--font-patria)]">
+      <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
+        <h1 className="text-2xl font-semibold text-gray-900 font- [family-name:var(--font-patria)]">
           {t.altaTitulo}
         </h1>
       </div>
 
-      <p className="text-sm text-gray-500 mb-8">{t.altaSubtitulo}</p>
+      {/*BARRA DE PROGRESO*/}
+      <div className="w-full mb-8">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-600">
+            {t.progreso}
+          </span>
+          <span className="text-sm font-bold text-[var(--pverde900)]">{progreso}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            className="bg-(--dorado500) h-2.5 rounded-full transition-all duration-500 ease-out" 
+            style={{ width: `${progreso}%` }}
+          ></div>
+        </div>
+      </div>
+
+      <p className="text-sm text-gray-500 mb-8">
+        {t.altaSubtitulo}<span className="text-red-500">*</span>{t.altaSubtitulo2}</p>
+
 
       <form onSubmit={handleSubmit} className="space-y-8">
         
-
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 font-[var(--font-patria)]">Datos de la institución</h3>
+            <h3 className="text-lg font-semibold text-gray-800 font- [family-name:var(--font-patria)]">{t.datosInstitucion}</h3>
             <p className="text-sm text-gray-500">Información principal para identificar la institución.</p>
           </div>
 
@@ -347,16 +380,28 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
               </select>
             </div>
 
+<div className="space-y-1.5">
+              <label className="text-sm font-bold text-gray-700">{t.origenInformacion} <span className="text-red-500">*</span></label>
+              <select 
+              name="origenInformacion" 
+              value={form.origenInformacion} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]">
+                <option value="">{t.seleccionaOpcion}</option>
+                {t.opcionesOrigen.map((op: string) => <option key={op} value={op}>{op}</option>)}
+              </select>
+            </div>
+
             <div className="space-y-1.5 md:col-span-3">
               <NivelesAcordeon form={form} setForm={setForm} t={t} />
             </div>
           </div>
         </div>
 
-
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 font-[var(--font-patria)]">Ubicación</h3>
+            <h3 className="text-lg font-semibold text-gray-800 font- [family-name:var(--font-patria)]">Ubicación</h3>
             <p className="text-sm text-gray-500">Domicilio de la institución.</p>
           </div>
 
@@ -387,17 +432,12 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
                 />
               )}
             </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-gray-700">{t.localidad} <span className="text-gray-400">(Opcional)</span></label>
-              <input name="localidad" type="text" placeholder={t.phLocalidad} value={bloqueado ? '' : form.localidad} onChange={handleChange} disabled={bloqueado} className={`w-full rounded-md p-2 border focus:border-[#5c0a2e] ${bloqueado ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white border-gray-300'}`} />
-            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 font-[var(--font-patria)]">Contacto y detalles</h3>
+            <h3 className="text-lg font-semibold text-gray-800 font- [family-name:var(--font-patria)]">Contacto y detalles</h3>
             <p className="text-sm text-gray-500">Información del responsable y clasificación.</p>
           </div>
 
@@ -417,18 +457,7 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
               <input name="correo" type="email" placeholder={t.phCorreo} value={form.correo} onChange={handleChange} required className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]" />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-gray-700">{t.origenInformacion} <span className="text-red-500">*</span></label>
-              <select 
-              name="origenInformacion" 
-              value={form.origenInformacion} 
-              onChange={handleChange} 
-              required 
-              className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]">
-                <option value="">{t.seleccionaOpcion}</option>
-                {t.opcionesOrigen.map((op: string) => <option key={op} value={op}>{op}</option>)}
-              </select>
-            </div>
+            
 
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-sm font-bold text-gray-700">{t.observaciones} <span className="text-gray-400">(Opcional)</span></label>
@@ -464,10 +493,9 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
     tipoInstitucion: institucion.tipo_institucion ?? '',
     tipoInstitucionNivelUno: institucion.nivel_uno_nombre ?? '',
     tipoInstitucionNivelDos: institucion.nivel_dos_nombre ?? '',
-    pais: institucion.pais_nombre ?? '',
+    pais: institucion.pais_nombre ?? '', 
     entidad: institucion.entidad_nombre ?? '',
     municipio: institucion.municipio_nombre ?? '',
-    localidad: institucion.localidad_nombre ?? '',
     razonSocial: String(institucion.id_institucion_padre ?? ''),
     privada: institucion.ind_empresa === '1' || 
     institucion.ind_empresa === 'S' ? 'SI' : 'NO',
@@ -485,7 +513,7 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 p-4 sticky top-0 bg-white z-10">
-          <h2 className="text-lg font-semibold text-[#13322e] font-[var(--font-patria)]">{idioma === 'es' ? 'Editar institución' : 'Edit institution'}</h2>
+          <h2 className="text-lg font-semibold text-[#13322e] font- [family-name:var(--font-patria)]">{idioma === 'es' ? 'Editar institución' : 'Edit institution'}</h2>
           <button onClick={onCerrar} className="text-slate-400 text-2xl">×</button>
         </div>
 
@@ -512,19 +540,27 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.pais}</label>
-            <input type="text" name="pais" value={form.pais} onChange={handleChange} className="input-style w-full" />
+            <PaisAutocomplete 
+              value={form.pais} 
+              onChange={(v) => setForm((prev) => ({ ...prev, pais: v }))} 
+            />
           </div>
+
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.entidad}</label>
-            <input type="text" name="entidad" value={form.entidad} onChange={handleChange} className="input-style w-full" />
+            <EntidadAutocomplete 
+              value={form.entidad} 
+              onChange={(v) => setForm((prev) => ({ ...prev, entidad: v }))} 
+            />
           </div>
+
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.municipio}</label>
-            <input type="text" name="municipio" value={form.municipio} onChange={handleChange} className="input-style w-full" />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">{t.localidad}</label>
-            <input type="text" name="localidad" value={form.localidad} onChange={handleChange} className="input-style w-full" />
+            <MunicipioAutocomplete 
+              value={form.municipio} 
+              onChange={(v) => setForm((prev) => ({ ...prev, municipio: v }))} 
+              entidad={form.entidad} 
+            />
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.institucionPadre}</label>
@@ -552,7 +588,11 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
         </div>
 
         <div className="flex items-center justify-between border-t border-slate-200 p-4 sticky bottom-0 bg-white">
-          <button type="button" onClick={onEliminar} className="text-red-600 text-sm font-medium hover:text-red-800">
+          <button 
+            type="button" 
+            onClick={onEliminar} 
+            className="text-sm font-medium text-[var(--pguinda600)] hover:text-[var(--pguinda900)] transition-colors"
+          >
             {idioma === 'es' ? 'Eliminar' : 'Delete'}
           </button>
           <div className="flex gap-3">

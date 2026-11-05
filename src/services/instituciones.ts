@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.17:8000'
+const API_BASE_URL = 'http://172.16.11.19:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -10,9 +10,7 @@ export type InstitucionAPI = {
   id_entidad: number | null
   entidad_nombre: string | null
   id_municipio: number | null
-  municipio_nombre: string | null
-  id_localidad: number | null
-  localidad_nombre: string | null   
+  municipio_nombre: string | null  
   nivel_uno_nombre: string | null
   nivel_dos_nombre: string | null
   nivel_tres_nombre: string | null  
@@ -22,12 +20,9 @@ export type InstitucionAPI = {
   ind_empresa: string | null
   origen_informacion: string | null
   tipo_institucion: string | null
-
   cve_peoplesoft?: string | null
-  ind_inst_superior?: string | null
   id_tipo_inst_nivel_uno?: number | null
   id_tipo_inst_nivel_dos?: number | null
-  id_tipo_inst_nivel_tres?: number | null
 }
 
 export type FiltrosInstituciones = {
@@ -46,10 +41,8 @@ export type CambiosInstitucion = Partial<{
   id_pais: number
   id_entidad: number | null
   id_municipio: number | null
-  id_localidad: number | null
   id_institucion_padre: number | null
   ind_empresa: string
-
   origen_informacion: string | null
 
   id_tipo_inst_nivel_uno?: number | null
@@ -66,7 +59,6 @@ export type CrearInstitucionPayload = {
   id_entidad: number | null
   id_entidad_ubicacion: number | null
   id_municipio: number | null
-  id_localidad: number | null
   id_institucion_padre: number | null
   id_tipo_inst_nivel_uno: number | null
   id_tipo_inst_nivel_dos: number | null
@@ -74,7 +66,6 @@ export type CrearInstitucionPayload = {
   origen_informacion: string | null
   observaciones: string
 
-  ind_inst_superior: string
 }
 
 export async function obtenerInstituciones(
