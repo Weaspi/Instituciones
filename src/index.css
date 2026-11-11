@@ -8,7 +8,7 @@
   font-style: normal;
 }
 
-@theme {
+:root {
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(0 0% 33%);
   --color-card: hsl(0 0% 100%);
@@ -31,11 +31,9 @@
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
-  --font-sans: 'Noto Sans', sans-serif; 
-  --font-patria: 'Patria', serif;     
-}
+  --font-sans: 'Noto Sans', sans-serif;
+  --font-patria: 'Patria', serif;
 
-:root {
   font-size: 14px;
 
   --background: 0 0% 100%;
@@ -124,8 +122,9 @@
 /* ---------- Header Gobierno de México ---------- */
 .header {
   width: 100%;
+  overflow: hidden;
   background: #13322e;
-  border-bottom: 1px solid rgba(188, 149, 92, 0.3);
+  border-bottom: 0px solid rgba(230, 13, 13, 0.3);
 }
 
 .irContent {
@@ -148,9 +147,9 @@
 }
 
 .mexico__contenedor {
-  max-width: 1400px;
+  max-width: 1870px;
   margin: 0 auto;
-  padding: 10px 16px;
+  padding: 16px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -163,7 +162,7 @@
 }
 
 .mexico__img {
-  height: 40px;
+  height: 48px;
   width: auto;
   display: block;
 }
@@ -191,7 +190,7 @@
   color: #fff;
   font-size: 14px;
   padding: 8px 12px;
-  border: 1px solid rgba(188, 149, 92, 0.4);
+  border: 1px solid rgb(231, 11, 11);
   border-radius: 6px;
 }
 .mexico__summary::-webkit-details-marker {
@@ -754,9 +753,134 @@ body {
 }
 
 .input-style {
-  @apply flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-base shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-slate-950 placeholder:text-slate-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#9d2449] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
+  display: flex;
+  height: 2.25rem;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  padding: 0.25rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.input-style::file-selector-button {
+  border: 0;
+  background-color: transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #020617;
+}
+.input-style::placeholder {
+  color: #94a3b8;
+}
+.input-style:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px #9d2449;
+}
+.input-style:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+@media (min-width: 768px) {
+  .input-style {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
 }
 
 .input-style:focus-visible {
-  @apply outline-none ring-2 ring-[#9d2449];
+  outline: none;
+  box-shadow: 0 0 0 2px #9d2449;
+}
+
+
+button:not(:disabled),
+a,
+[role="button"],
+select,
+.cursor-pointer,
+input[type="submit"],
+input[type="button"],
+[type="radio"],
+[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* Efecto hover para botones y enlaces */
+button:not(:disabled):hover,
+a:hover,
+[role="button"]:hover {
+  filter: brightness(1.08);
+  transition: filter 0.2s ease, transform 0.1s ease;
+}
+
+button:not(:disabled):active,
+a:active,
+[role="button"]:active {
+  transform: scale(0.98);
+}
+
+/* Hover de tablas */
+tbody tr:hover {
+  background-color: rgb(243, 242, 238) !important;
+  transition: background-color 0.15s ease;
+}
+
+/* Hover para elementos de selects */
+select:hover {
+  background-color: rgb(144, 204, 2);
+}
+
+/* Hover para inputs de texto */
+input[type="text"]:hover,
+input[type="email"]:hover,
+textarea:hover {
+  border-color: #9d2449;
+}
+
+/* Hover para elementos del acordeón */
+button[aria-expanded]:hover {
+  background-color: rgba(36, 157, 66, 0.05);
+}
+
+/* Hover para tarjetas */
+.bg-white.rounded-lg {
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.bg-white.rounded-lg:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Hover para botones de paginación */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Hover para elementos de la tabla de opciones */
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Hover para botones del gobierno */
+.btn-gob {
+  transition: all 0.15s ease;
+}
+
+/* Hover para elementos del header */
+.mexico__a {
+  transition: all 0.15s ease;
+}
+
+/* Hover para elementos del footer */
+.footer__enlacesLink {
+  transition: color 0.15s ease;
+}
+
+/* Hover para elementos del menú lateral */
+aside button {
+  transition: all 0.15s ease;
 }

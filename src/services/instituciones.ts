@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.19:8000'
+const API_BASE_URL = 'http://172.16.11.17:8000'
 
 export type InstitucionAPI = {
   id_institucion: number
@@ -14,7 +14,6 @@ export type InstitucionAPI = {
   nivel_uno_nombre: string | null
   nivel_dos_nombre: string | null
   nivel_tres_nombre: string | null  
-  id_institucion_padre: number | null
   id_entidad_ubicacion: number | null
   cve_institucion: string | null
   ind_empresa: string | null
@@ -41,7 +40,6 @@ export type CambiosInstitucion = Partial<{
   id_pais: number
   id_entidad: number | null
   id_municipio: number | null
-  id_institucion_padre: number | null
   ind_empresa: string
   origen_informacion: string | null
 
@@ -59,7 +57,6 @@ export type CrearInstitucionPayload = {
   id_entidad: number | null
   id_entidad_ubicacion: number | null
   id_municipio: number | null
-  id_institucion_padre: number | null
   id_tipo_inst_nivel_uno: number | null
   id_tipo_inst_nivel_dos: number | null
   ind_empresa: string

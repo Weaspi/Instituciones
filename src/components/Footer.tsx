@@ -3,6 +3,8 @@ import twitter from '../assets/icons/x.svg'
 import instagram from '../assets/icons/instagram.svg'
 import youtube from '../assets/icons/youtube.svg'
 
+
+
 type FooterProps = {
   t: {
     footerTituloGobmx: string

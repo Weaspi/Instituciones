@@ -50,6 +50,9 @@ export const TRADUCCIONES = {
     phOtroTipo: 'Escribe el tipo',
     phOtroPoder: 'Ej. Organismo autónomo',
     guardadoEn: 'Este valor se guardará en',
+    contacto: 'Contacto y detalles',
+    informacion: 'Información del responsable y clasificación',
+    informa: 'Información principal para identificar la institución.',
 
     cancelar: 'Cancelar',
     guardar: 'Guardar institución',
@@ -57,6 +60,8 @@ export const TRADUCCIONES = {
     obligatoriosSufijo: 'son obligatorios.',
     registradaOk: 'Institución registrada correctamente.',
     verRegistradas: 'Ver registradas',
+    ubicacion: 'Ubicación',
+    domicilio: 'Domicilio de la institución.',
 
     catalogo: 'Catálogo',
     listaTitulo: 'Instituciones registradas',
@@ -65,6 +70,7 @@ export const TRADUCCIONES = {
     sinCoincidencias: 'No se encontraron coincidencias.',
     colNombre: 'Institución',
     colPais: 'País',
+    infoPais: 'Escribe para buscar tu pais...',
     colEntidad: 'Entidad',
     colMunicipio: 'Municipio',
     colInstitucion1: 'Tipo de institución nivel uno',
@@ -73,7 +79,7 @@ export const TRADUCCIONES = {
     colResponsable: 'Responsable',
     colCorreo: 'Correo',
     colFechaRegistro: 'Registrado el',
-    guion: '—',
+  
 
     footer: 'Sistema de Registro Institucional',
 
@@ -161,6 +167,9 @@ export const TRADUCCIONES = {
     phOtroTipo: 'Write the type',
     phOtroPoder: 'E.g. Autonomous body',
     guardadoEn: 'This value will be saved in',
+    contacto: 'Contact and details',
+    informacion: 'Information of the responsible and classification',
+    informa: 'Main information to identify the institution.',
 
     cancelar: 'Cancel',
     guardar: 'Save institution',
@@ -168,6 +177,8 @@ export const TRADUCCIONES = {
     obligatoriosSufijo: 'are required.',
     registradaOk: 'Institution successfully registered.',
     verRegistradas: 'View registered',
+    ubicacion: 'Location',
+    domicilio: 'Address of the institution.',
 
     catalogo: 'Catalog',
     listaTitulo: 'Registered institutions',
@@ -176,6 +187,7 @@ export const TRADUCCIONES = {
     sinCoincidencias: 'No matches found.',
     colNombre: 'Institution',
     colPais: 'Country',
+    infoPais: 'Type to search for your country...',
     colEntidad: 'State',
     colMunicipio: 'Municipality',
     colInstitucion1: ' Institution type level one',
@@ -184,7 +196,7 @@ export const TRADUCCIONES = {
     colResponsable: 'Contact',
     colCorreo: 'Email',
     colFechaRegistro: 'Registered on',
-    guion: '—',
+
 
     footer: 'Institutional Registry System',
 

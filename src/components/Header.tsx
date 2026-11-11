@@ -27,24 +27,25 @@ function Header({
         {t.irContenido}
       </a>
 
-      <div className="mexico__contenedor">
+      <div className="mexico__contenedor flex items-center justify-between gap-4 w-full px-4 max-w-[1700px] mx-auto">
+            
         <a
           href="https://www.gob.mx/"
-          className="mexico__aescudo"
+          className="mexico__aescudo shrink-0"
           target="_blank"
           rel="noopener noreferrer"
         >
           <img
             src="/assets/img/gobierno-mexico.svg"
-            className="mexico__img"
+            className="mexico__img h-10 md:h-12 w-auto"
             alt={t.altEscudo}
           />
         </a>
 
-        <nav className="mexico__menu">
+        <nav className="mexico__menu hidden md:flex items-center gap-4">
           <a
             href="https://www.gob.mx/tramites"
-            className="mexico__a"
+            className="mexico__a hover:text-gray-300 transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -52,27 +53,34 @@ function Header({
           </a>
           <a
             href="https://www.gob.mx/gobierno"
-            className="mexico__a"
+            className="mexico__a hover:text-gray-300 transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >
             Gobierno
           </a>
 
-          <span className="mexico__sep" />
+          <span className="mexico__sep hidden lg:block" />
 
           <button
             type="button"
             onClick={onCambiarIdioma}
-            className="btn-gob"
+            className="btn-gob shrink-0"
           >
             {t.btnIdioma}
           </button>
-
         </nav>
-      </div>
-    </header>
-  )
-}
 
+          <button
+                    type="button"
+                    onClick={onCambiarIdioma}
+                    className="btn-gob md:hidden shrink-0"
+                  >
+                    {t.btnIdioma}
+                  </button>
+                  </div>
+                </header>
+              )
+            }
+    
 export default Header

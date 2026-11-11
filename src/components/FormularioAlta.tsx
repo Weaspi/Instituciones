@@ -12,7 +12,7 @@ export type InstitucionForm = {
   pais: string
   entidad: string
   municipio: string
-  razonSocial: string
+
   privada: string
   nombre: string
   correo: string
@@ -28,7 +28,6 @@ export const FORM_INICIAL: InstitucionForm = {
   pais: '', 
   entidad: '', 
   municipio: '', 
-  razonSocial: '', 
   privada: '',
   nombre: '', 
   correo: '', 
@@ -131,7 +130,7 @@ function PaisAutocomplete({ value, onChange, bloqueado }: { value: string, onCha
         id="pais" 
         name="pais" 
         type="text" 
-        placeholder="Escribe para buscar tu país..." 
+        placeholder="Selecciona o escribe para buscar el país..."
         value={texto} 
         onChange={(e) => { 
           setTexto(e.target.value); 
@@ -150,7 +149,7 @@ function PaisAutocomplete({ value, onChange, bloqueado }: { value: string, onCha
       />
       {abierto && filtrados.length > 0 && (
         <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-          {filtrados.slice(0, 50).map((p, i) => (
+          {filtrados.slice(0).map((p, i) => (
             <li key={p} onMouseDown={(e) => { 
               e.preventDefault(); 
               setTexto(p);
@@ -287,7 +286,7 @@ function NivelesAcordeon({ form, setForm, t }: { form: InstitucionForm, setForm:
   return (
     <div className="md:col-span-3 rounded-lg border border-gray-200 bg-gray-50/50 mt-2">
       <div className="px-4 py-3 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-[#000000] font- [family-name:var(--font-patria)]">{t.nivelesTitulo} <span className="text-[#fc2222]">*</span></h3>
+        <h3 className="text-sm font-semibold text-[#000000] font-(family-name:--font-patria)">{t.nivelesTitulo} <span className="text-[#fc2222]">*</span></h3>
         <p className="text-xs text-gray-500 mt-0.5">{t.nivelesSubtitulo}</p>
       </div>
       <ul className="divide-y divide-gray-200">
@@ -323,18 +322,18 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
     <main className="flex-1 p-6 md:p-10 bg-white min-h-screen">
       
       <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
-        <h1 className="text-2xl font-semibold text-gray-900 font- [family-name:var(--font-patria)]">
+        <h1 className="text-2xl font-semibold text-gray-900 font-(family-name:--font-patria)">
           {t.altaTitulo}
         </h1>
       </div>
 
-      {/*BARRA DE PROGRESO*/}
+
       <div className="w-full mb-8">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-600">
             {t.progreso}
           </span>
-          <span className="text-sm font-bold text-[var(--pverde900)]">{progreso}%</span>
+          <span className="text-sm font-bold text-(--pverde900)">{progreso}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div 
@@ -352,8 +351,8 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
         
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 font- [family-name:var(--font-patria)]">{t.datosInstitucion}</h3>
-            <p className="text-sm text-gray-500">Información principal para identificar la institución.</p>
+            <h3 className="text-lg font-semibold text-gray-800 font-(family-name:--font-patria)">{t.datosInstitucion}</h3>
+            <p className="text-sm text-gray-500">{t.infoIns}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -401,8 +400,8 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 font- [family-name:var(--font-patria)]">Ubicación</h3>
-            <p className="text-sm text-gray-500">Domicilio de la institución.</p>
+            <h3 className="text-lg font-semibold text-gray-800 font-(family-name:--font-patria)">{t.ubicacion}</h3>
+            <p className="text-sm text-gray-500">{t.domicilio}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -412,7 +411,7 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-bold text-gray-700">{t.entidad} <span className="text-gray-400">(Opcional)</span></label>
+              <label className="text-sm font-bold text-gray-700">{t.entidad} <span className="text-gray-400">{t.opcional}</span></label>
               {bloqueado ? (
                 <input name="entidad" disabled value="" className="w-full rounded-md p-2 border bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed" />
               ) : (
@@ -421,7 +420,7 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-bold text-gray-700">{t.municipio} <span className="text-gray-400">(Opcional)</span></label>
+              <label className="text-sm font-bold text-gray-700">{t.municipio} <span className="text-gray-400">{t.opcional}</span></label>
               {bloqueado ? (
                 <input disabled className="w-full rounded-md p-2 border bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed" />
               ) : (
@@ -437,15 +436,12 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 font- [family-name:var(--font-patria)]">Contacto y detalles</h3>
-            <p className="text-sm text-gray-500">Información del responsable y clasificación.</p>
+            <h3 className="text-lg font-semibold text-gray-800 font-(family-name:--font-patria)">{t.contacto}</h3>
+            <p className="text-sm text-gray-500">{t.informacion}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-gray-700">{t.institucionPadre} <span className="text-gray-400">(Opcional)</span></label>
-              <input name="razonSocial" type="text" placeholder={t.phInstitucionPadre} value={form.razonSocial} onChange={handleChange} className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]" />
-            </div>
+
+
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-gray-700">{t.nombre} <span className="text-red-500">*</span></label>
@@ -460,10 +456,9 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
             
 
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-bold text-gray-700">{t.observaciones} <span className="text-gray-400">(Opcional)</span></label>
+              <label className="text-sm font-bold text-gray-700">{t.observaciones} <span className="text-gray-400">{t.opcional}</span></label>
               <textarea name="observaciones" placeholder={t.phObservaciones} value={form.observaciones} onChange={handleChange} rows={3} className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]" />
             </div>
-          </div>
         </div>
 
         <div className="flex items-center justify-between pt-6 mt-8 border-t border-gray-200">
@@ -496,7 +491,7 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
     pais: institucion.pais_nombre ?? '', 
     entidad: institucion.entidad_nombre ?? '',
     municipio: institucion.municipio_nombre ?? '',
-    razonSocial: String(institucion.id_institucion_padre ?? ''),
+
     privada: institucion.ind_empresa === '1' || 
     institucion.ind_empresa === 'S' ? 'SI' : 'NO',
     nombre: '',
@@ -513,7 +508,7 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 p-4 sticky top-0 bg-white z-10">
-          <h2 className="text-lg font-semibold text-[#13322e] font- [family-name:var(--font-patria)]">{idioma === 'es' ? 'Editar institución' : 'Edit institution'}</h2>
+          <h2 className="text-lg font-semibold text-[#13322e] font-(family-name:--font-patria)">{idioma === 'es' ? 'Editar institución' : 'Edit institution'}</h2>
           <button onClick={onCerrar} className="text-slate-400 text-2xl">×</button>
         </div>
 
@@ -562,10 +557,7 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
               entidad={form.entidad} 
             />
           </div>
-          <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1">{t.institucionPadre}</label>
-            <input type="text" name="razonSocial" value={form.razonSocial} onChange={handleChange} className="input-style w-full" />
-          </div>
+
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.privada}</label>
             <select name="privada" value={form.privada} onChange={handleChange} className="input-style w-full">
@@ -591,7 +583,7 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
           <button 
             type="button" 
             onClick={onEliminar} 
-            className="text-sm font-medium text-[var(--pguinda600)] hover:text-[var(--pguinda900)] transition-colors"
+            className="text-sm font-medium text-(--pguinda600) hover:text-(--pguinda900) transition-colors"
           >
             {idioma === 'es' ? 'Eliminar' : 'Delete'}
           </button>

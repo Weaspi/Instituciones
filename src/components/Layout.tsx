@@ -38,9 +38,13 @@ function Layout({
       </div>
 
       <div className="flex-1 flex flex-col md:flex-row w-full">
-        
-        <aside className="w-full md:w-50 bg-[var(--pverde700)] text-white p-2 hidden md:flex flex-col shrink-0 md:sticky md:top-[40px] md:h-[calc(100vh-60px)] overflow-y-auto z-40">
-          <h2 className="text-xl font-bold mb-8 font-[var(--font-patria)]"></h2>
+      <aside className="w-50 bg-linear-to-b from-(--pverde700) to-(--pverde600) text-white p-2 hidden 
+          md:flex flex-col shrink-0 
+          md:sticky 
+          md:top-0 
+          md:h-screen overflow-y-auto z-40 shadow-[15px_0_50px_rgba(0,0,0,0.2)]">
+
+          <h2 className="text-xl font-bold mb-8 font-patria"></h2>
           <nav className="space-y-4 flex-1">
             <button
               type="button"
@@ -62,6 +66,7 @@ function Layout({
               {t.navRegistradas} ({totalRegistradas})
             </button>
 
+      {/* 
             <button
               type="button"
               onClick={onIrMasiva}
@@ -71,6 +76,7 @@ function Layout({
             >
            {t.cargaMasiva}
             </button>
+      */}
           </nav>
         </aside>
 

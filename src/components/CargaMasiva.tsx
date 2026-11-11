@@ -22,7 +22,7 @@ export function CargaMasiva() {
       <div className="max-w-5xl mx-auto">
         
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 font-[family-name:var(--font-patria)]">
+          <h1 className="text-2xl font-semibold text-gray-900 font-patria">
             Altas masivas de instituciones
           </h1>
           <p className="text-sm text-gray-500 mt-2">
@@ -59,7 +59,7 @@ export function CargaMasiva() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-12 min-h-[400px] flex flex-col justify-between">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-12 min-h-100 flex flex-col justify-between">
           
           <div>
 

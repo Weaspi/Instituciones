@@ -60,7 +60,7 @@ const obtenerIdNivelDos = (nombre: string): number | null => {
   return index >= 0 ? index + 1 : null
 }
 
-// 👇 AGREGAMOS 'masiva' AL TIPO
+
 type Vista = 'alta' | 'lista' | 'masiva'
 
 function App() {
@@ -124,6 +124,8 @@ function App() {
         setTotalRegistros(data.count)
         setTotalPaginas(data.totalPages)
         setHaySiguiente(Boolean(data.next) || data.currentPage < data.totalPages)
+
+        
       } catch (error) {
         if (!cancelado)
           setErrorInstituciones(
@@ -200,7 +202,6 @@ function App() {
       id_entidad_ubicacion: idEntidad,
       id_municipio: obtenerIdMunicipio(form.municipio, form.entidad),
       municipio_nombre: form.municipio || null,
-      id_institucion_padre: form.razonSocial ? Number(form.razonSocial) : null,
       id_tipo_inst_nivel_uno: obtenerIdNivelUno(form.tipoInstitucionNivelUno),
       id_tipo_inst_nivel_dos: obtenerIdNivelDos(form.tipoInstitucionNivelDos),
 

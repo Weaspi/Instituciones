@@ -66,7 +66,6 @@ export function TablaInstituciones({
       pais: i.pais_nombre ?? '',
       entidad: i.entidad_nombre ?? '',
       municipio: i.municipio_nombre ?? '',
-      razonSocial: i.id_institucion_padre ? String(i.id_institucion_padre) : '',
       privada: i.ind_empresa ?? '',
       nombre: '',
       correo: '',
@@ -83,7 +82,7 @@ export function TablaInstituciones({
           <span className="text-xs font-semibold tracking-wider text-[#9d2449] uppercase">
             {t.catalogo}
           </span>
-          <h2 className="text-[22px] font-semibold text-gray-900 leading-tight font-[var(--font-patria)]">
+          <h2 className="text-[22px] font-semibold text-gray-900 leading-tight font-(family-name:--font-patria)">
             {t.listaTitulo}
           </h2>
         </div>
@@ -174,26 +173,27 @@ export function TablaInstituciones({
                     <thead className="bg-gray-50 text-gray-700 border-b border-gray-200">
                       <tr>
                     
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colNombre}</th>
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colTipoInstitucion || 'Tipo de Inst.'}</th>
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colPais}</th>
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colEntidad}</th>
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colMunicipio}</th>
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colInstitucion1 || 'Nivel 1'}</th>
-                        <th className="px-4 py-3 font-semibold font- [var(--font-patria)]">{t.colInstitucion2 || 'Nivel 2'}</th>
-                        <th className="px-4 py-3 font-semibold text-center font- [var(--font-patria)]">Acciones</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colNombre}</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colTipoInstitucion || 'Tipo de Inst.'}</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colPais}</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colEntidad}</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colMunicipio}</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colInstitucion1 || 'Nivel 1'}</th>
+                        <th className="px-4 py-3 font-semibold font-(family-name:--font-patria)">{t.colInstitucion2 || 'Nivel 2'}</th>
+                        <th className="px-4 py-3 font-semibold text-center font-(family-name:--font-patria)">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {filtradas.map((i) => (
-                        <tr key={i._id} className="hover:bg-gray-50/50 transition-colors">
+                        <tr key={i._id}
+                         className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3 text-gray-900 font-medium">{i.nombreInstitucion}</td>
-                          <td className="px-4 py-3 text-gray-600">{i.tipoInstitucion || t.guion}</td>
+                          <td className="px-4 py-3 text-gray-600">{i.tipoInstitucion}</td>
                           <td className="px-4 py-3 text-gray-600">{i.pais}</td>
-                          <td className="px-4 py-3 text-gray-600">{i.entidad || t.guion}</td>
-                          <td className="px-4 py-3 text-gray-600">{i.municipio || t.guion}</td>
-                          <td className="px-4 py-3 text-gray-600">{i.tipoInstitucionNivelUno || t.guion}</td>
-                          <td className="px-4 py-3 text-gray-600">{i.tipoInstitucionNivelDos || t.guion}</td>
+                          <td className="px-4 py-3 text-gray-600">{i.entidad}</td>
+                          <td className="px-4 py-3 text-gray-600">{i.municipio}</td>
+                          <td className="px-4 py-3 text-gray-600">{i.tipoInstitucionNivelUno}</td>
+                          <td className="px-4 py-3 text-gray-600">{i.tipoInstitucionNivelDos}</td>
                           <td className="px-4 py-3 text-center">
                             <button
                               type="button"
@@ -245,7 +245,7 @@ export function TablaInstituciones({
                     </button>
 
                     <span className="text-sm font-medium text-gray-700">
-                      Página {paginaActual} 
+                      Página {paginaActual } 
                     </span>
 
                     <button
