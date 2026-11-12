@@ -8,6 +8,7 @@ import {
   type InstitucionAPI,
   type CambiosInstitucion,
 } from './services/instituciones'
+import { obtenerPaises, obtenerEntidades, obtenerMunicipios } from './services/catalogos'
 import Layout from './components/Layout'
 import {
   FormularioAlta,
@@ -18,31 +19,8 @@ import {
   normalizarMayus,
 } from './components/FormularioAlta'
 import { TablaInstituciones } from './components/TablaInstituciones'
-import { ESTADOS_MEXICO } from './data/estados'
-import { PAISES } from './data/paises'
-import { MUNICIPIOS_DATA } from './data/municipios'
 import { ConfirmModal } from './components/ConfirmModal'
 import { CargaMasiva } from './components/CargaMasiva'
-
-const obtenerIdPais = (nombre: string) => {
-  const i = PAISES.findIndex((p) => normalizar(p) === normalizar(nombre))
-  return i >= 0 ? i + 1 : null
-}
-
-const obtenerIdEntidad = (nombre: string) => {
-  const i = ESTADOS_MEXICO.findIndex((e) => normalizar(e) === normalizar(nombre))
-  return i >= 0 ? i + 1 : null
-}
-
-const obtenerIdMunicipio = (nombreMunicipio: string, nombreEstado: string) => {
-  if (!nombreMunicipio || !nombreEstado) return null
-  const index = MUNICIPIOS_DATA.findIndex(
-    (m) =>
-      normalizar(m.municipio) === normalizar(nombreMunicipio) &&
-      normalizar(m.estado) === normalizar(nombreEstado)
-  )
-  return index >= 0 ? index + 1 : null
-}
 
 const obtenerIdNivelUno = (nombre: string): number | null => {
   if (!nombre) return null
@@ -60,7 +38,6 @@ const obtenerIdNivelDos = (nombre: string): number | null => {
   return index >= 0 ? index + 1 : null
 }
 
-
 type Vista = 'alta' | 'lista' | 'masiva'
 
 function App() {
@@ -73,6 +50,20 @@ function App() {
   const t = TRADUCCIONES[idioma]
   const [pageSize, setPageSize] = useState(10)
 
+  // Catálogos
+  const [paises, setPaises] = useState<any[]>([])
+  const [entidades, setEntidades] = useState<any[]>([])
+  const [municipios, setMunicipios] = useState<any[]>([])
+
+  // Búsquedas para catálogos
+  const [busquedaPais, setBusquedaPais] = useState('')
+  const [debouncedPais, setDebouncedPais] = useState('')
+  const [busquedaEntidad, setBusquedaEntidad] = useState('')
+  const [debouncedEntidad, setDebouncedEntidad] = useState('')
+  const [busquedaMunicipio, setBusquedaMunicipio] = useState('')
+  const [debouncedMunicipio, setDebouncedMunicipio] = useState('')
+
+  // Estados de la tabla principal
   const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
   const [cargandoInstituciones, setCargandoInstituciones] = useState(false)
   const [errorInstituciones, setErrorInstituciones] = useState<string | null>(null)
@@ -92,6 +83,46 @@ function App() {
     tipo_institucion: null,
   })
 
+  // --- EFECTOS DE DEBOUNCE PARA CATÁLOGOS ---
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPais(busquedaPais), 500)
+    return () => clearTimeout(timer)
+  }, [busquedaPais])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedEntidad(busquedaEntidad), 500)
+    return () => clearTimeout(timer)
+  }, [busquedaEntidad])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMunicipio(busquedaMunicipio), 500)
+    return () => clearTimeout(timer)
+  }, [busquedaMunicipio])
+
+  // --- CARGA DE CATÁLOGOS ---
+  useEffect(() => {
+    obtenerPaises(debouncedPais).then(setPaises).catch(console.error)
+  }, [debouncedPais])
+
+  useEffect(() => {
+    if (form.pais) {
+      obtenerEntidades(Number(form.pais), debouncedEntidad).then(setEntidades).catch(console.error)
+    } else {
+      setEntidades([])
+      setMunicipios([])
+    }
+  }, [form.pais, debouncedEntidad])
+
+  useEffect(() => {
+    if (form.entidad) {
+      obtenerMunicipios(Number(form.entidad), debouncedMunicipio).then(setMunicipios).catch(console.error)
+    } else {
+      setMunicipios([])
+    }
+  }, [form.entidad, debouncedMunicipio])
+
+
+  // --- EFECTOS DE LA TABLA PRINCIPAL ---
   useEffect(() => {
     const timer = setTimeout(() => {
       setBusquedaDebounced(filtros.search)
@@ -124,8 +155,6 @@ function App() {
         setTotalRegistros(data.count)
         setTotalPaginas(data.totalPages)
         setHaySiguiente(Boolean(data.next) || data.currentPage < data.totalPages)
-
-        
       } catch (error) {
         if (!cancelado)
           setErrorInstituciones(
@@ -150,7 +179,7 @@ function App() {
 
   useEffect(() => {
     if (form.tipoInstitucion === 'NACIONAL') {
-      setForm((prev) => ({ ...prev, pais: 'México' }))
+      setForm((prev) => ({ ...prev, pais: '143' }))
     } else if (form.tipoInstitucion === 'EXTRANJERA') {
       setForm((prev) => ({
         ...prev,
@@ -174,16 +203,8 @@ function App() {
 
     const esNacional = form.tipoInstitucion === 'NACIONAL'
 
-    const idEntidad =
-      esNacional && form.entidad ? obtenerIdEntidad(form.entidad) : null
-    if (esNacional && form.entidad && idEntidad === null) {
-      alert('Selecciona la entidad de la lista')
-      return
-    }
-
-    const idPais = esNacional ? 143 : obtenerIdPais(form.pais)
-    if (idPais === null) {
-      alert('Selecciona un país de la lista')
+    if (esNacional && !form.entidad) {
+      alert('Selecciona una entidad')
       return
     }
 
@@ -196,15 +217,12 @@ function App() {
       cve_peoplesoft: '',
       tipo_institucion: form.tipoInstitucion || '',
       id_tipo_institucion: esNacional ? 1 : 2,
-
-      id_pais: idPais,
-      id_entidad: idEntidad,
-      id_entidad_ubicacion: idEntidad,
-      id_municipio: obtenerIdMunicipio(form.municipio, form.entidad),
-      municipio_nombre: form.municipio || null,
+      id_pais: Number(form.pais) || null,
+      id_entidad: Number(form.entidad) || null,
+      id_entidad_ubicacion: Number(form.entidad) || null,
+      id_municipio: Number(form.municipio) || null,
       id_tipo_inst_nivel_uno: obtenerIdNivelUno(form.tipoInstitucionNivelUno),
       id_tipo_inst_nivel_dos: obtenerIdNivelDos(form.tipoInstitucionNivelDos),
-
       ind_empresa: form.privada === 'SI' ? '1' : '0',
       origen_informacion: form.origenInformacion || null,
       observaciones: form.observaciones || '',
@@ -240,16 +258,12 @@ function App() {
     if (nombreMayus !== editando.desc_institucion)
       cambios.desc_institucion = nombreMayus
 
-    if (formEdicion.entidad !== (editando.entidad_nombre ?? ''))
-      cambios.id_entidad = obtenerIdEntidad(formEdicion.entidad) || null
+    if (String(formEdicion.entidad) !== String(editando.id_entidad ?? '')) {
+      cambios.id_entidad = Number(formEdicion.entidad) || null
+    }
 
-    if (formEdicion.pais !== (editando.pais_nombre ?? '')) {
-      const idPaisEdit = obtenerIdPais(formEdicion.pais)
-      if (idPaisEdit === null) {
-        alert('Selecciona un país de la lista')
-        return
-      }
-      cambios.id_pais = idPaisEdit
+    if (String(formEdicion.pais) !== String(editando.id_pais ?? '')) {
+      cambios.id_pais = Number(formEdicion.pais)
     }
 
     if (
@@ -301,10 +315,9 @@ function App() {
       onIrLista={() => setVista('lista')}
       onIrMasiva={() => setVista('masiva')}
     >
-  
-          {vista === 'masiva' ? (
-            <CargaMasiva /> 
-          ) : vista === 'lista' ? (
+      {vista === 'masiva' ? (
+        <CargaMasiva /> 
+      ) : vista === 'lista' ? (
         <TablaInstituciones
           institucionesAPI={institucionesAPI}
           cargando={cargandoInstituciones}
@@ -333,6 +346,12 @@ function App() {
           setVista={setVista}
           t={t}
           idioma={idioma}
+          paises={paises}
+          entidades={entidades}
+          municipios={municipios}
+          setBusquedaPais={setBusquedaPais}           
+          setBusquedaEntidad={setBusquedaEntidad}    
+          setBusquedaMunicipio={setBusquedaMunicipio} 
         />
       )}
 
@@ -344,6 +363,12 @@ function App() {
           onCerrar={() => setEditando(null)}
           onGuardar={handleGuardarEdicion}
           onEliminar={handleAbrirModalEliminar}
+          paises={paises}
+          entidades={entidades}
+          municipios={municipios}
+          setBusquedaPais={setBusquedaPais}           
+          setBusquedaEntidad={setBusquedaEntidad}     
+          setBusquedaMunicipio={setBusquedaMunicipio} 
         />
       )}
 

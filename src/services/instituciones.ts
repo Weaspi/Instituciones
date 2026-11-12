@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.16.11.17:8000'
+const API_BASE_URL = 'http://172.16.11.22:8000'
 
 export type InstitucionAPI = {
   id_institucion: number

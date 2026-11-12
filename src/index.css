@@ -827,19 +827,20 @@ tbody tr:hover {
   transition: background-color 0.15s ease;
 }
 
-/* Hover para elementos de selects */
+/* Hover de selects */
 select:hover {
-  background-color: rgb(144, 204, 2);
+  background-color: var(--pverde200);
+    
 }
 
-/* Hover para inputs de texto */
+/* Hover de texto */
 input[type="text"]:hover,
 input[type="email"]:hover,
 textarea:hover {
   border-color: #9d2449;
 }
 
-/* Hover para elementos del acordeón */
+/* Hover del acordeón */
 button[aria-expanded]:hover {
   background-color: rgba(36, 157, 66, 0.05);
 }
@@ -860,7 +861,7 @@ button:disabled {
   opacity: 0.5;
 }
 
-/* Hover para elementos de la tabla de opciones */
+/* Hover para tabla de opciones */
 tbody tr {
   transition: background-color 0.15s ease;
 }

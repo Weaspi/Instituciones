@@ -1,7 +1,4 @@
 import { useState, useMemo, useEffect, useRef, ChangeEvent } from 'react'
-import { PAISES } from '../data/paises'
-import { ESTADOS_MEXICO } from '../data/estados'
-import { MUNICIPIOS_DATA } from '../data/municipios'
 import { TRADUCCIONES, type Traduccion } from '../i18n/traducciones'
 
 export type InstitucionForm = {
@@ -12,7 +9,6 @@ export type InstitucionForm = {
   pais: string
   entidad: string
   municipio: string
-
   privada: string
   nombre: string
   correo: string
@@ -42,188 +38,93 @@ export const normalizarMayus = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
 
-function EntidadAutocomplete({ value, onChange }: { value: string, onChange: (v: string) => void }) {
+function AutocompleteTabla({ 
+  value, 
+  onChange, 
+  opciones, 
+  placeholder,
+  disabled,
+  onSearch 
+}: { 
+  value: string, 
+  onChange: (id: string) => void, 
+  opciones: any[], 
+  placeholder: string,
+  disabled?: boolean,
+  onSearch?: (search: string) => void
+}) {
   const [abierto, setAbierto] = useState(false)
-  const [resaltado, setResaltado] = useState(0)
+  const [busqueda, setBusqueda] = useState('')
   const contenedorRef = useRef<HTMLDivElement>(null)
-  const filtrados = useMemo(() => { const q = normalizar(value); if (!q) return ESTADOS_MEXICO; return ESTADOS_MEXICO.filter((e) => normalizar(e).includes(q)) }, [value])
+
+  // Encontrar el nombre de la opción seleccionada para mostrarla en el input
+  const opcionSeleccionada = opciones.find(o => String(o.id) === value)
+  const textoMostrado = opcionSeleccionada ? opcionSeleccionada.nombre : busqueda
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) setAbierto(false) }
+    const handler = (e: MouseEvent) => { 
+      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) setAbierto(false) 
+    }
     document.addEventListener('mousedown', handler); return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!abierto && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { setAbierto(true); return }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setResaltado((r) => Math.min(r + 1, filtrados.length - 1)) } 
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setResaltado((r) => Math.max(r - 1, 0)) } 
-    else if (e.key === 'Enter') { if (abierto && filtrados[resaltado]) { e.preventDefault(); onChange(filtrados[resaltado]); setAbierto(false) } } 
-    else if (e.key === 'Escape') setAbierto(false)
-  }
-
-  return (
-    <div ref={contenedorRef} className="relative">
-      <input id="entidad" name="entidad" type="text" placeholder="Escribe para buscar el estado..." value={value} onChange={(e) => { 
-        onChange(e.target.value); 
-        setAbierto(true); 
-        setResaltado(0) }} onFocus={() => 
-        setAbierto(true)} onKeyDown={handleKeyDown} 
-        autoComplete="off" className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-[#5c0a2e] focus:ring-[#5c0a2e]" />
-
-      {abierto && filtrados.length > 0 && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-          {filtrados.slice(0, 50).map((est, i) => (
-            <li key={est} onMouseDown={(e) => { 
-              e.preventDefault(); 
-              onChange(est); 
-              setAbierto(false) }} 
-              onMouseEnter={() => setResaltado(i)} className={`cursor-pointer px-3 py-2 text-sm ${i === resaltado ? 'bg-[#5c0a2e] text-white' : 'text-gray-700'}`}>{est}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
-
-function PaisAutocomplete({ value, onChange, bloqueado }: { value: string, onChange: (v: string) => void, bloqueado?: boolean }) {
-  const [abierto, setAbierto] = useState(false) 
-  const [resaltado, setResaltado] = useState(0)
-  const [texto, setTexto] = useState(value)
-  const contenedorRef = useRef<HTMLDivElement>(null)
-  
-  useEffect(() => {
-    setTexto(value)
-  }, [value])
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { 
-      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) setAbierto(false) 
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  const filtrados = useMemo(() => { 
-    const q = normalizar(texto); 
-    if (!q) return PAISES; 
-    return PAISES.filter((p) => normalizar(p).includes(q)) 
-  }, [texto])
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!abierto && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { setAbierto(true); return }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setResaltado((r) => Math.min(r + 1, filtrados.length - 1)) } 
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setResaltado((r) => Math.max(r - 1, 0)) } 
-    else if (e.key === 'Enter') { 
-      if (abierto && filtrados[resaltado]) { 
-        e.preventDefault(); 
-        onChange(filtrados[resaltado]); 
-        setTexto(filtrados[resaltado]); 
-        setAbierto(false)
-      } 
-    } 
-    else if (e.key === 'Escape') setAbierto(false)
-  }
-
-  return (
-    <div ref={contenedorRef} className="relative">
-      <input 
-        id="pais" 
-        name="pais" 
-        type="text" 
-        placeholder="Selecciona o escribe para buscar el país..."
-        value={texto} 
-        onChange={(e) => { 
-          setTexto(e.target.value); 
-          onChange(e.target.value); 
-          setAbierto(true); 
-          setResaltado(0) 
-        }} 
-        onFocus={() => setAbierto(true)} 
-        onKeyDown={handleKeyDown} 
-        required 
-        autoComplete="off" 
-        disabled={bloqueado} 
-        className={`w-full rounded-md shadow-sm p-2 border focus:border-[#5c0a2e] focus:ring-[#5c0a2e] ${
-          bloqueado ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white border-gray-300'
-        }`} 
-      />
-      {abierto && filtrados.length > 0 && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-          {filtrados.slice(0).map((p, i) => (
-            <li key={p} onMouseDown={(e) => { 
-              e.preventDefault(); 
-              setTexto(p);
-              onChange(p); 
-              setAbierto(false) 
-            }} onMouseEnter={() => setResaltado(i)} className={`cursor-pointer px-3 py-2 text-sm ${i === resaltado ? 'bg-[#5c0a2e] text-white' : 'text-gray-700'}`}>{p}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
-
-function MunicipioAutocomplete({ value, onChange, entidad }: { value: string, onChange: (v: string) => void, entidad: string }) {
-  const [abierto, setAbierto] = useState(false)
-  const [resaltado, setResaltado] = useState(0)
-  const contenedorRef = useRef<HTMLDivElement>(null)
-
-  const municipiosDelEstado = useMemo(() => {
-    if (!entidad) return []
-    return MUNICIPIOS_DATA
-      .filter(item => normalizar(item.estado) === normalizar(entidad))
-      .map(item => item.municipio)
-  }, [entidad])
-
   const filtrados = useMemo(() => {
-    const q = normalizar(value)
-    if (!q) return municipiosDelEstado
-    return municipiosDelEstado.filter((m) => normalizar(m).includes(q))
-  }, [value, municipiosDelEstado])
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { 
-      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) setAbierto(false) 
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!abierto && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { setAbierto(true); return }
-    if (e.key === 'ArrowDown') { e.preventDefault(); setResaltado((r) => Math.min(r + 1, filtrados.length - 1)) } 
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setResaltado((r) => Math.max(r - 1, 0)) } 
-    else if (e.key === 'Enter') { if (abierto && filtrados[resaltado]) { e.preventDefault(); onChange(filtrados[resaltado]); setAbierto(false) } } 
-    else if (e.key === 'Escape') setAbierto(false)
-  }
+    const q = normalizar(busqueda)
+    if (!q) return opciones
+    return opciones.filter((o) => normalizar(o.nombre).includes(q))
+  }, [busqueda, opciones])
 
   return (
     <div ref={contenedorRef} className="relative">
-      <input 
-        id="municipio" 
-        name="municipio" 
-        type="text" 
-        placeholder={entidad ? "Escribe para buscar el municipio..." : "Selecciona primero una entidad"} 
-        value={value} 
-        onChange={(e) => { onChange(e.target.value); setAbierto(true); setResaltado(0) }} 
-        onFocus={() => setAbierto(true)} 
-        onKeyDown={handleKeyDown} 
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={textoMostrado}
+        disabled={disabled}
+        onChange={(e) => {
+          setBusqueda(e.target.value)
+          setAbierto(true)
+
+          if (onSearch) onSearch(e.target.value) 
+          if (e.target.value === '') onChange('') 
+        }}
+        onFocus={() => setAbierto(true)}
         autoComplete="off"
-        disabled={!entidad}
-        className={`w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-[#5c0a2e] focus:ring-[#5c0a2e] ${!entidad ? 'bg-gray-100 cursor-not-allowed text-gray-400' : ''}`} 
+        className={`w-full rounded-md shadow-sm p-2 border focus:border-[#5c0a2e] focus:ring-[#5c0a2e] ${
+          disabled ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white border-gray-300'
+        }`}
       />
-      {abierto && filtrados.length > 0 && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-          {filtrados.map((mun, i) => (
-            <li key={mun} onMouseDown={(e) => { e.preventDefault(); onChange(mun); setAbierto(false) }} onMouseEnter={() => setResaltado(i)} className={`cursor-pointer px-3 py-2 text-sm ${i === resaltado ? 'bg-[#5c0a2e] text-white' : 'text-gray-700'}`}>{mun}</li>
-          ))}
-        </ul>
+      
+      {abierto && !disabled && filtrados.length > 0 && (
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-gray-100">
+              {filtrados.slice(0, 300).map((op) => {
+                const activo = String(op.id) === value
+                return (
+                  <tr 
+                    key={op.id} 
+                    onClick={() => { onChange(String(op.id)); setAbierto(false); setBusqueda('') }}
+                    className={`cursor-pointer transition-colors ${activo ? 'bg-[#5c0a2e]/5' : 'hover:bg-gray-50'}`}
+                  >
+                    <td className="px-3 py-2 text-gray-700">{op.nombre}</td>
+                    <td className="px-3 py-2 w-10 text-center">
+                      <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border-2 ${activo ? 'border-[#5c0a2e] bg-[#5c0a2e]' : 'border-gray-300'}`}>
+                        {activo && <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )
 }
 
-function NivelConOpciones({ form, setForm, name, opciones, t }: { form: InstitucionForm, setForm: any, name: 'tipoInstitucionNivelUno' | 'tipoInstitucionNivelDos', opciones: readonly string[], t: Traduccion }) {
+function NivelConOpciones({ form, setForm, name, opciones, t }: any) {
   const valorActual = form[name]
   const otra = t === TRADUCCIONES.en ? 'Other' : 'Otro'
   const opcionInicial = opciones.includes(valorActual) ? valorActual : valorActual ? otra : ''
@@ -242,7 +143,7 @@ function NivelConOpciones({ form, setForm, name, opciones, t }: { form: Instituc
             <tr><th className="text-left font-medium px-3 py-2">{t.tablaTipo}</th><th className="text-left font-medium px-3 py-2 w-24">{t.tablaSeleccion}</th></tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {opciones.map((op) => {
+            {opciones.map((op: string) => {
               const activa = opcion === op
               return (
                 <tr key={op} onClick={() => handleOpcionClick(op)} className={`cursor-pointer transition-colors ${activa ? 'bg-[#5c0a2e]/5' : 'hover:bg-gray-50'}`}>
@@ -264,7 +165,7 @@ function NivelConOpciones({ form, setForm, name, opciones, t }: { form: Instituc
   )
 }
 
-function NivelesAcordeon({ form, setForm, t }: { form: InstitucionForm, setForm: any, t: Traduccion }) {
+function NivelesAcordeon({ form, setForm, t }: any) {
   const [abierto, setAbierto] = useState<string | null>(null)
   const toggle = (key: string) => setAbierto((prev) => (prev === key ? null : key))
 
@@ -303,7 +204,7 @@ function NivelesAcordeon({ form, setForm, t }: { form: InstitucionForm, setForm:
   )
 }
 
-export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloqueado, enviado, setVista, t }: any) {
+export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloqueado, enviado, setVista, t, paises, entidades, municipios }: any) {
   const camposObligatorios = [
     form.nombreInstitucion,
     form.tipoInstitucion,
@@ -316,17 +217,14 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
 
   const camposLlenos = camposObligatorios.filter((valor) => valor && valor.trim() !== '').length
   const progreso = Math.round((camposLlenos / camposObligatorios.length) * 100)
-  
 
   return (
     <main className="flex-1 p-6 md:p-10 bg-white min-h-screen">
-      
       <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
         <h1 className="text-2xl font-semibold text-gray-900 font-(family-name:--font-patria)">
           {t.altaTitulo}
         </h1>
       </div>
-
 
       <div className="w-full mb-8">
         <div className="flex justify-between items-center mb-2">
@@ -345,7 +243,6 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
 
       <p className="text-sm text-gray-500 mb-8">
         {t.altaSubtitulo}<span className="text-red-500">*</span>{t.altaSubtitulo2}</p>
-
 
       <form onSubmit={handleSubmit} className="space-y-8">
         
@@ -379,7 +276,7 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
               </select>
             </div>
 
-<div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-sm font-bold text-gray-700">{t.origenInformacion} <span className="text-red-500">*</span></label>
               <select 
               name="origenInformacion" 
@@ -407,29 +304,36 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-gray-700">{t.pais} <span className="text-red-500">*</span></label>
-              <PaisAutocomplete value={form.pais} onChange={(v) => setForm((prev: any) => ({ ...prev, pais: v }))} bloqueado={form.tipoInstitucion === 'NACIONAL'} />
+
+              <AutocompleteTabla 
+                value={form.pais} 
+                onChange={(v) => setForm((prev: any) => ({ ...prev, pais: v }))} 
+                opciones={paises} 
+                placeholder="Selecciona o busca el país..."
+                disabled={form.tipoInstitucion === 'NACIONAL'} 
+              />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-gray-700">{t.entidad} <span className="text-gray-400">{t.opcional}</span></label>
-              {bloqueado ? (
-                <input name="entidad" disabled value="" className="w-full rounded-md p-2 border bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed" />
-              ) : (
-                <EntidadAutocomplete value={form.entidad} onChange={(v) => setForm((prev: any) => ({ ...prev, entidad: v }))} />
-              )}
+              <AutocompleteTabla 
+                value={form.entidad} 
+                onChange={(v) => setForm((prev: any) => ({ ...prev, entidad: v }))} 
+                opciones={entidades} 
+                placeholder="Selecciona o busca el estado..."
+                disabled={bloqueado || !form.pais} 
+              />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-gray-700">{t.municipio} <span className="text-gray-400">{t.opcional}</span></label>
-              {bloqueado ? (
-                <input disabled className="w-full rounded-md p-2 border bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed" />
-              ) : (
-                <MunicipioAutocomplete 
-                  value={form.municipio} 
-                  onChange={(v) => setForm((prev: any) => ({ ...prev, municipio: v }))} 
-                  entidad={form.entidad}
-                />
-              )}
+              <AutocompleteTabla 
+                value={form.municipio} 
+                onChange={(v) => setForm((prev: any) => ({ ...prev, municipio: v }))} 
+                opciones={municipios} 
+                placeholder="Selecciona o busca el municipio..."
+                disabled={bloqueado || !form.entidad} 
+              />
             </div>
           </div>
         </div>
@@ -440,9 +344,7 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
             <p className="text-sm text-gray-500">{t.informacion}</p>
           </div>
 
-
-
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-gray-700">{t.nombre} <span className="text-red-500">*</span></label>
               <input name="nombre" type="text" placeholder={t.phNombre} value={form.nombre} onChange={handleChange} required className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]" />
@@ -453,12 +355,11 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
               <input name="correo" type="email" placeholder={t.phCorreo} value={form.correo} onChange={handleChange} required className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]" />
             </div>
 
-            
-
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-sm font-bold text-gray-700">{t.observaciones} <span className="text-gray-400">{t.opcional}</span></label>
               <textarea name="observaciones" placeholder={t.phObservaciones} value={form.observaciones} onChange={handleChange} rows={3} className="w-full border-gray-300 rounded-md p-2 border focus:border-[#5c0a2e]" />
             </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-6 mt-8 border-t border-gray-200">
@@ -469,7 +370,6 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
             </button>
           </div>
         </div>
-
       </form>
 
       {enviado && (
@@ -482,18 +382,17 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
   )
 }
 
-export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEliminar }: any) {
+export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEliminar, paises, entidades, municipios }: any) {
   const [form, setForm] = useState<InstitucionForm>({
     nombreInstitucion: institucion.desc_institucion,
     tipoInstitucion: institucion.tipo_institucion ?? '',
     tipoInstitucionNivelUno: institucion.nivel_uno_nombre ?? '',
     tipoInstitucionNivelDos: institucion.nivel_dos_nombre ?? '',
-    pais: institucion.pais_nombre ?? '', 
-    entidad: institucion.entidad_nombre ?? '',
-    municipio: institucion.municipio_nombre ?? '',
-
-    privada: institucion.ind_empresa === '1' || 
-    institucion.ind_empresa === 'S' ? 'SI' : 'NO',
+    // Buscamos los IDs que coincidan con los nombres de la API
+    pais: String(paises.find((p: any) => p.nombre === institucion.pais_nombre)?.id ?? ''),
+    entidad: String(entidades.find((e: any) => e.nombre === institucion.entidad_nombre)?.id ?? ''),
+    municipio: String(municipios.find((m: any) => m.nombre === institucion.municipio_nombre)?.id ?? ''),
+    privada: institucion.ind_empresa === '1' || institucion.ind_empresa === 'S' ? 'SI' : 'NO',
     nombre: '',
     correo: '', 
     observaciones: '', 
@@ -535,26 +434,31 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.pais}</label>
-            <PaisAutocomplete 
+            <AutocompleteTabla 
               value={form.pais} 
               onChange={(v) => setForm((prev) => ({ ...prev, pais: v }))} 
+              opciones={paises} 
+              placeholder="Selecciona un país"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.entidad}</label>
-            <EntidadAutocomplete 
+            <AutocompleteTabla 
               value={form.entidad} 
               onChange={(v) => setForm((prev) => ({ ...prev, entidad: v }))} 
+              opciones={entidades} 
+              placeholder="Selecciona una entidad"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.municipio}</label>
-            <MunicipioAutocomplete 
+            <AutocompleteTabla 
               value={form.municipio} 
               onChange={(v) => setForm((prev) => ({ ...prev, municipio: v }))} 
-              entidad={form.entidad} 
+              opciones={municipios} 
+              placeholder="Selecciona un municipio"
             />
           </div>
 

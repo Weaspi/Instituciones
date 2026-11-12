@@ -66,7 +66,7 @@ function Layout({
               {t.navRegistradas} ({totalRegistradas})
             </button>
 
-      {/* 
+      
             <button
               type="button"
               onClick={onIrMasiva}
@@ -76,7 +76,7 @@ function Layout({
             >
            {t.cargaMasiva}
             </button>
-      */}
+      
           </nav>
         </aside>
 
