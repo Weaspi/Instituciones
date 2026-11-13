@@ -31,6 +31,17 @@ export const FORM_INICIAL: InstitucionForm = {
   origenInformacion: '',
 }
 
+// 👇 FUNCIÓN DE LIMPIEZA OPTIMIZADA
+export const limpiarNombreInstitucion = (s: string) =>
+  s
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/N\u0303/g, 'Ñ') // conserva la Ñ
+    .replace(/[\u0300-\u036f]/g, '') // quita acentos
+    .replace(/[.,]/g, '') // quita puntos y comas
+    .replace(/^\s+/, '') // quita espacios al inicio
+    .replace(/\s{2,}/g, ' ') // evita espacios dobles
+
 export const normalizar = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 export const normalizarMayus = (s: string) =>
   s
@@ -57,7 +68,6 @@ function AutocompleteTabla({
   const [busqueda, setBusqueda] = useState('')
   const contenedorRef = useRef<HTMLDivElement>(null)
 
-  // Encontrar el nombre de la opción seleccionada para mostrarla en el input
   const opcionSeleccionada = opciones.find(o => String(o.id) === value)
   const textoMostrado = opcionSeleccionada ? opcionSeleccionada.nombre : busqueda
 
@@ -84,7 +94,6 @@ function AutocompleteTabla({
         onChange={(e) => {
           setBusqueda(e.target.value)
           setAbierto(true)
-
           if (onSearch) onSearch(e.target.value) 
           if (e.target.value === '') onChange('') 
         }}
@@ -158,7 +167,12 @@ function NivelConOpciones({ form, setForm, name, opciones, t }: any) {
       {opcion === otra && (
         <div className="space-y-1.5 pt-2">
           <label htmlFor={`otro-${name}`} className="text-xs font-medium text-gray-600">{t.especificaTipo}</label>
-          <input id={`otro-${name}`} type="text" placeholder={t.phOtroTipo} value={otroTexto} onChange={(e) => handleOtroChange(e.target.value)} autoFocus className="w-full border-gray-300 rounded-md p-2 border" />
+          <input id={`otro-${name}`} 
+          type="text" 
+          placeholder={t.phOtroTipo} 
+          value={otroTexto} 
+          onChange={(e) => handleOtroChange(e.target.value)} 
+          autoFocus className="w-full border-gray-300 rounded-md p-2 border" />
         </div>
       )}
     </div>
@@ -255,7 +269,28 @@ export function FormularioAlta({ form, setForm, handleSubmit, handleChange, bloq
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-sm font-bold text-gray-700">{t.nombreInstitucion} <span className="text-red-500">*</span></label>
-              <input name="nombreInstitucion" type="text" placeholder={t.phNombreInstitucion} value={form.nombreInstitucion} onChange={handleChange} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-[#5c0a2e] focus:ring-[#5c0a2e]" />
+              
+              {/* 👇 INPUT CORREGIDO CON limpiarNombreInstitucion 👇 */}
+              <input
+                name="nombreInstitucion"
+                type="text"
+                placeholder={t.phNombreInstitucion}
+                value={form.nombreInstitucion}
+                onChange={(e) =>
+                  setForm((prev: any) => ({
+                    ...prev,
+                    nombreInstitucion: limpiarNombreInstitucion(e.target.value),
+                  }))
+                }
+                onBlur={() =>
+                  setForm((prev: any) => ({
+                    ...prev,
+                    nombreInstitucion: prev.nombreInstitucion.trimEnd(),
+                  }))
+                }
+                required
+                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-[#5c0a2e] focus:ring-[#5c0a2e]"
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -388,7 +423,6 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
     tipoInstitucion: institucion.tipo_institucion ?? '',
     tipoInstitucionNivelUno: institucion.nivel_uno_nombre ?? '',
     tipoInstitucionNivelDos: institucion.nivel_dos_nombre ?? '',
-    // Buscamos los IDs que coincidan con los nombres de la API
     pais: String(paises.find((p: any) => p.nombre === institucion.pais_nombre)?.id ?? ''),
     entidad: String(entidades.find((e: any) => e.nombre === institucion.entidad_nombre)?.id ?? ''),
     municipio: String(municipios.find((m: any) => m.nombre === institucion.municipio_nombre)?.id ?? ''),
@@ -414,7 +448,25 @@ export function ModalEditar({ institucion, t, idioma, onCerrar, onGuardar, onEli
         <div className="p-4 space-y-4">
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.nombreInstitucion}</label>
-            <input type="text" name="nombreInstitucion" value={form.nombreInstitucion} onChange={handleChange} className="input-style w-full" />
+            {/* 👇 INPUT CORREGIDO CON limpiarNombreInstitucion 👇 */}
+            <input
+              type="text"
+              name="nombreInstitucion"
+              value={form.nombreInstitucion}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  nombreInstitucion: limpiarNombreInstitucion(e.target.value),
+                }))
+              }
+              onBlur={() =>
+                setForm((prev) => ({
+                  ...prev,
+                  nombreInstitucion: prev.nombreInstitucion.trimEnd(),
+                }))
+              }
+              className="input-style w-full"
+            />
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-1">{t.tipoInstitucion}</label>

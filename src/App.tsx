@@ -17,6 +17,7 @@ import {
   type InstitucionForm,
   normalizar,
   normalizarMayus,
+  limpiarNombreInstitucion,
 } from './components/FormularioAlta'
 import { TablaInstituciones } from './components/TablaInstituciones'
 import { ConfirmModal } from './components/ConfirmModal'
@@ -50,12 +51,10 @@ function App() {
   const t = TRADUCCIONES[idioma]
   const [pageSize, setPageSize] = useState(10)
 
-  // Catálogos
   const [paises, setPaises] = useState<any[]>([])
   const [entidades, setEntidades] = useState<any[]>([])
   const [municipios, setMunicipios] = useState<any[]>([])
 
-  // Búsquedas para catálogos
   const [busquedaPais, setBusquedaPais] = useState('')
   const [debouncedPais, setDebouncedPais] = useState('')
   const [busquedaEntidad, setBusquedaEntidad] = useState('')
@@ -63,7 +62,6 @@ function App() {
   const [busquedaMunicipio, setBusquedaMunicipio] = useState('')
   const [debouncedMunicipio, setDebouncedMunicipio] = useState('')
 
-  // Estados de la tabla principal
   const [institucionesAPI, setInstitucionesAPI] = useState<InstitucionAPI[]>([])
   const [cargandoInstituciones, setCargandoInstituciones] = useState(false)
   const [errorInstituciones, setErrorInstituciones] = useState<string | null>(null)
@@ -83,7 +81,7 @@ function App() {
     tipo_institucion: null,
   })
 
-  // --- EFECTOS DE DEBOUNCE PARA CATÁLOGOS ---
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedPais(busquedaPais), 500)
     return () => clearTimeout(timer)
@@ -99,7 +97,7 @@ function App() {
     return () => clearTimeout(timer)
   }, [busquedaMunicipio])
 
-  // --- CARGA DE CATÁLOGOS ---
+
   useEffect(() => {
     obtenerPaises(debouncedPais).then(setPaises).catch(console.error)
   }, [debouncedPais])
@@ -122,7 +120,6 @@ function App() {
   }, [form.entidad, debouncedMunicipio])
 
 
-  // --- EFECTOS DE LA TABLA PRINCIPAL ---
   useEffect(() => {
     const timer = setTimeout(() => {
       setBusquedaDebounced(filtros.search)
@@ -209,7 +206,7 @@ function App() {
     }
 
     const payload = {
-      desc_institucion: normalizarMayus(form.nombreInstitucion),
+      desc_institucion: limpiarNombreInstitucion(form.nombreInstitucion).trim(),
       cve_institucion: `INST-${new Date()
         .toISOString()
         .slice(0, 10)
@@ -254,7 +251,7 @@ function App() {
         formEdicion.tipoInstitucion === 'NACIONAL' ? 1 : 2
     }
 
-    const nombreMayus = normalizarMayus(formEdicion.nombreInstitucion)
+  const nombreMayus = limpiarNombreInstitucion(formEdicion.nombreInstitucion).trim()
     if (nombreMayus !== editando.desc_institucion)
       cambios.desc_institucion = nombreMayus
 
